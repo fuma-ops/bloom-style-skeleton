@@ -1,12 +1,12 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { ComingSoonCard, PageHeader } from "@/components/bloom/PageHeader";
 import { TOOLS } from "@/components/bloom/tools";
 import { CycleTracker } from "@/components/bloom/CycleTracker";
-import { BudgetPlanner } from "@/components/bloom/BudgetPlanner";
 
 export const Route = createFileRoute("/app/tools/$slug")({
   loader: ({ params }) => {
+    if (params.slug === "budget") throw redirect({ to: "/budget" });
     const tool = TOOLS.find((t) => t.slug === params.slug);
     if (!tool) throw notFound();
     return { tool };
@@ -29,16 +29,6 @@ function ToolPage() {
           <ArrowLeft className="h-4 w-4" /> All tools
         </Link>
         <CycleTracker />
-      </>
-    );
-  }
-  if (tool.slug === "budget") {
-    return (
-      <>
-        <Link to="/app/tools" className="mb-4 inline-flex items-center gap-1 text-sm text-rose hover:text-hotpink">
-          <ArrowLeft className="h-4 w-4" /> All tools
-        </Link>
-        <BudgetPlanner />
       </>
     );
   }

@@ -1,754 +1,1234 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  X,
-  UtensilsCrossed,
-  Sparkles,
-  ShoppingBag,
-  Home,
-  HeartPulse,
-  Repeat,
-  PiggyBank,
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  Heart,
-  Flower2,
-  type LucideIcon,
+  Wallet, TrendingUp, TrendingDown, PiggyBank, Gem, Plus, Trash2,
+  ChevronDown, ChevronLeft, ChevronRight, Check, Sparkles,
+  Home as HomeIcon, ShoppingCart, GraduationCap, Car, Dumbbell, Zap, Droplets,
+  Flame, Smartphone, Pill, Sparkle, Film, Shirt, Plane, Heart, UtensilsCrossed,
+  Baby, PawPrint, Package, BookHeart, Target, Briefcase, Banknote,
+  Building2, LineChart as LineIcon, Calendar, Download, Filter, ArrowUpRight,
+  ArrowDownRight, type LucideIcon,
 } from "lucide-react";
-import { BloomBubbles } from "./BloomBubbles";
+import { KawaiiBackground } from "./KawaiiBackground";
 
-/* ---------- Tokens ---------- */
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const DEFAULT_CURRENCY = "MAD";
+/* ============================================================
+   TOKENS / CONSTANTS
+============================================================ */
+const CURRENCIES = {
+  MAD: { symbol: "DH", name: "Moroccan Dirham" },
+  EUR: { symbol: "€",  name: "Euro" },
+  USD: { symbol: "$",  name: "US Dollar" },
+  GBP: { symbol: "£",  name: "British Pound" },
+  AED: { symbol: "د.إ", name: "UAE Dirham" },
+  CAD: { symbol: "C$", name: "Canadian Dollar" },
+} as const;
+type CurrencyKey = keyof typeof CURRENCIES;
 
-type CategoryKey =
-  | "food" | "beauty" | "shopping" | "rent" | "selfcare" | "subs" | "savings" | "other";
+const TABS = [
+  "Dashboard", "Incomes", "Budget Setup", "Smart Calculator", "Savings Goals", "Reports",
+] as const;
+type TabKey = typeof TABS[number];
 
-interface Category {
-  key: CategoryKey;
-  label: string;
-  Icon: LucideIcon;
-  color: string; // hsl/oklch hex for chart
-  tint: string;  // tailwind bg utility for chips
-  text: string;  // tailwind text utility
-}
+type Need = "need" | "want" | "savings";
 
-const CATEGORIES: Category[] = [
-  { key: "food",     label: "Food",          Icon: UtensilsCrossed, color: "#ff7aa8", tint: "bg-pink-100",   text: "text-hotpink" },
-  { key: "beauty",   label: "Beauty",        Icon: Sparkles,        color: "#ff5fa2", tint: "bg-rose-100",   text: "text-magenta" },
-  { key: "shopping", label: "Shopping",      Icon: ShoppingBag,     color: "#f48fb1", tint: "bg-pink-50",    text: "text-hotpink" },
-  { key: "rent",     label: "Rent / Home",   Icon: Home,            color: "#d96a99", tint: "bg-rose-50",    text: "text-rose" },
-  { key: "selfcare", label: "Self-care",     Icon: HeartPulse,      color: "#ffb3cf", tint: "bg-pink-50",    text: "text-hotpink" },
-  { key: "subs",     label: "Subscriptions", Icon: Repeat,          color: "#c97aa8", tint: "bg-rose-100",   text: "text-rose" },
-  { key: "savings",  label: "Savings",       Icon: PiggyBank,       color: "#ff9ec5", tint: "bg-pink-100",   text: "text-hotpink" },
-  { key: "other",    label: "Other",         Icon: Wallet,          color: "#e8a5c4", tint: "bg-blush",      text: "text-rose" },
+interface Cat { key: string; label: string; Icon: LucideIcon; emoji: string; group: Need; }
+
+const DEFAULT_CATS: Cat[] = [
+  { key: "rent",    label: "Rent/Mortgage",      Icon: HomeIcon,        emoji: "🏠", group: "need" },
+  { key: "food",    label: "Food & Groceries",   Icon: ShoppingCart,    emoji: "🛒", group: "need" },
+  { key: "edu",     label: "Education",          Icon: GraduationCap,   emoji: "🎓", group: "need" },
+  { key: "transp",  label: "Transport",          Icon: Car,             emoji: "🚗", group: "need" },
+  { key: "gym",     label: "Gym & Sport",        Icon: Dumbbell,        emoji: "💪", group: "want" },
+  { key: "elec",    label: "Electricity",        Icon: Zap,             emoji: "⚡", group: "need" },
+  { key: "water",   label: "Water",              Icon: Droplets,        emoji: "💧", group: "need" },
+  { key: "gas",     label: "Gas",                Icon: Flame,           emoji: "🔥", group: "need" },
+  { key: "phone",   label: "Phone & Internet",   Icon: Smartphone,      emoji: "📱", group: "want" },
+  { key: "health",  label: "Health & Pharmacy",  Icon: Pill,            emoji: "💊", group: "need" },
+  { key: "beauty",  label: "Beauty & Skincare",  Icon: Sparkle,         emoji: "💅", group: "want" },
+  { key: "enter",   label: "Entertainment",      Icon: Film,            emoji: "🎬", group: "want" },
+  { key: "shop",    label: "Shopping & Clothing",Icon: Shirt,           emoji: "👗", group: "want" },
+  { key: "travel",  label: "Travel & Vacation",  Icon: Plane,           emoji: "✈️", group: "want" },
+  { key: "self",    label: "Self-care & Wellness",Icon: Heart,          emoji: "🌸", group: "want" },
+  { key: "rest",    label: "Restaurants & Dining",Icon: UtensilsCrossed,emoji: "🍽️", group: "want" },
+  { key: "kids",    label: "Kids & Family",      Icon: Baby,            emoji: "👶", group: "need" },
+  { key: "pets",    label: "Pets",               Icon: PawPrint,        emoji: "🐾", group: "want" },
+  { key: "other",   label: "Divers/Other",       Icon: Package,         emoji: "📦", group: "need" },
 ];
 
-const CAT_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c])) as Record<CategoryKey, Category>;
+const INCOME_SOURCES = ["Salary","Freelance","Business","Rental","Investment","Side hustle","Other"];
+const FREQUENCIES = ["Monthly","Weekly","Bi-weekly","One-time"] as const;
+type Frequency = typeof FREQUENCIES[number];
 
-interface Txn {
-  id: string;
-  type: "expense" | "income";
-  amount: number;
-  category: CategoryKey;
-  date: Date;
-  note?: string;
-}
+const MOODS = [
+  { key: "planned",   label: "Planned",   emoji: "🎯", tone: "bg-mint/30 text-emerald-700 border-emerald-200" },
+  { key: "necessary", label: "Necessary", emoji: "✅", tone: "bg-pink-100 text-hotpink border-pink-200" },
+  { key: "impulsive", label: "Impulsive", emoji: "💸", tone: "bg-rose-100 text-magenta border-rose-200" },
+] as const;
+type MoodKey = typeof MOODS[number]["key"];
 
-interface Goal {
-  id: string;
-  name: string;
-  target: number;
-  saved: number;
-}
+const PRESET_GOALS = ["Emergency Fund","Vacation","New Device","Investment","Wedding","Home","Education","Car"];
 
-const DEMO_TODAY = new Date(2026, 5, 4);
+/* ============================================================
+   TYPES
+============================================================ */
+interface Income { id: string; source: string; amount: number; frequency: Frequency; }
+interface Budget { [catKey: string]: number; } // monthly amount per selected cat
+interface Txn { id: string; date: string; catKey: string; amount: number; description: string; mood: MoodKey; type: "income" | "expense"; }
+interface Goal { id: string; name: string; target: number; saved: number; monthly: number; }
+interface Bill { id: string; name: string; due: string; amount: number; paid: boolean; }
+interface CustomCat { key: string; label: string; emoji: string; group: Need; }
 
-const SAMPLE_TXNS: Txn[] = [
-  { id: "t1", type: "income",  amount: 8500, category: "other",    date: new Date(2026, 5, 1), note: "Salary" },
-  { id: "t2", type: "expense", amount: 320,  category: "food",     date: new Date(2026, 5, 2), note: "Groceries" },
-  { id: "t3", type: "expense", amount: 180,  category: "beauty",   date: new Date(2026, 5, 3), note: "Skincare" },
-  { id: "t4", type: "expense", amount: 90,   category: "selfcare", date: new Date(2026, 5, 3), note: "Yoga class" },
-  { id: "t5", type: "expense", amount: 250,  category: "shopping", date: new Date(2026, 5, 4), note: "Cute top" },
-  { id: "t6", type: "expense", amount: 60,   category: "subs",     date: new Date(2026, 5, 4), note: "Spotify" },
-];
-
-const SAMPLE_GOALS: Goal[] = [
-  { id: "g1", name: "New bag",   target: 1500, saved: 900 },
-  { id: "g2", name: "Trip",      target: 6000, saved: 1800 },
-  { id: "g3", name: "Emergency", target: 5000, saved: 2200 },
-];
-
-/* ---------- Helpers ---------- */
-function sameMonth(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-}
-function fmt(n: number, currency: string) {
-  return `${Math.round(n).toLocaleString()} ${currency}`;
-}
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
-}
-
-/* ---------- Count-up hook ---------- */
-function useCountUp(value: number, duration = 600) {
-  const [v, setV] = useState(value);
-  const from = useRef(value);
+/* ============================================================
+   PERSISTENCE
+============================================================ */
+function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
+  const [v, setV] = useState<T>(() => {
+    if (typeof window === "undefined") return initial;
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : initial;
+    } catch { return initial; }
+  });
   useEffect(() => {
-    const start = performance.now();
-    const startV = from.current;
-    const delta = value - startV;
-    let raf = 0;
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setV(startV + delta * eased);
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else from.current = value;
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [value, duration]);
-  return v;
+    try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
+  }, [key, v]);
+  return [v, setV];
 }
 
-/* ---------- Donut chart ---------- */
-function Donut({ slices, size = 200 }: { slices: { value: number; color: string }[]; size?: number }) {
-  const total = slices.reduce((s, x) => s + x.value, 0) || 1;
-  const r = size / 2 - 12;
-  const c = 2 * Math.PI * r;
-  let acc = 0;
+/* ============================================================
+   HELPERS
+============================================================ */
+const uid = () => Math.random().toString(36).slice(2, 10);
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function fmt(n: number, c: CurrencyKey) {
+  const sym = CURRENCIES[c].symbol;
+  const rounded = Math.round(n * 100) / 100;
+  return `${sym} ${rounded.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+function toMonthly(i: Income): number {
+  switch (i.frequency) {
+    case "Monthly":   return i.amount;
+    case "Weekly":    return i.amount * (52 / 12);
+    case "Bi-weekly": return i.amount * (26 / 12);
+    case "One-time":  return i.amount / 12;
+  }
+}
+
+function daysUntil(dateISO: string): number {
+  const d = new Date(dateISO + "T00:00:00");
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((d.getTime() - t.getTime()) / 86400000);
+}
+
+/* ============================================================
+   ATOMIC UI
+============================================================ */
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="oklch(0.95 0.04 350)" strokeWidth="18" />
-      {slices.map((s, i) => {
-        const len = (s.value / total) * c;
-        const dash = `${len} ${c - len}`;
-        const offset = -acc;
-        acc += len;
-        return (
-          <circle
-            key={i}
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={s.color}
-            strokeWidth="18"
-            strokeDasharray={dash}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: "stroke-dasharray 700ms ease, stroke-dashoffset 700ms ease" }}
-          />
-        );
+    <div
+      className={`rounded-2xl bg-white/85 backdrop-blur p-5 shadow-[0_8px_24px_-12px_rgba(236,72,153,0.25)] border-[0.5px] border-pink-300/30 transition-all duration-200 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={`w-full rounded-xl bg-white/80 px-3 py-2 text-sm text-[#831843] placeholder:text-[#C4A0CE] border-[0.5px] border-pink-300/40 outline-none transition focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400 ${props.className ?? ""}`}
+    />
+  );
+}
+
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="relative">
+      <select
+        {...props}
+        className={`appearance-none w-full rounded-xl bg-white/80 pl-3 pr-8 py-2 text-sm text-[#831843] border-[0.5px] border-pink-300/40 outline-none transition focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400 ${props.className ?? ""}`}
+      />
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9D5C7E]" />
+    </div>
+  );
+}
+
+function PrimaryBtn({ children, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...rest}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full bg-[#EC4899] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-pink-400/30 transition hover:scale-[1.03] hover:bg-[#DB2777] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 ${rest.className ?? ""}`}
+    />
+  );
+}
+
+function GhostBtn({ children, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...rest}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full bg-[#FCE7F3] px-4 py-2 text-sm font-semibold text-[#9D5C7E] border-[0.5px] border-pink-400/30 transition hover:bg-pink-200 active:scale-95 ${rest.className ?? ""}`}
+    />
+  );
+}
+
+/* ============================================================
+   CHARTS (pure SVG)
+============================================================ */
+function Donut({ data, total, currency, size = 180 }: {
+  data: { label: string; value: number; color: string }[];
+  total: number; currency: CurrencyKey; size?: number;
+}) {
+  const r = size / 2 - 16, c = 2 * Math.PI * r;
+  let acc = 0;
+  const sum = data.reduce((s, d) => s + d.value, 0) || 1;
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#FCE7F3" strokeWidth="18" />
+        {data.map((d, i) => {
+          const len = (d.value / sum) * c;
+          const dash = `${len} ${c - len}`;
+          const offset = -acc;
+          acc += len;
+          return (
+            <circle key={i} cx={size/2} cy={size/2} r={r} fill="none"
+              stroke={d.color} strokeWidth="18" strokeDasharray={dash}
+              strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-500" />
+          );
+        })}
+      </svg>
+      <div className="-mt-[60%] mb-[20%] text-center pointer-events-none">
+        <div className="text-[10px] font-bold tracking-widest text-[#9D5C7E]">TOTAL</div>
+        <div className="font-script text-3xl text-[#831843]">{fmt(total, currency)}</div>
+      </div>
+    </div>
+  );
+}
+
+function LineChart({ points }: { points: number[] }) {
+  const w = 320, h = 140, pad = 20;
+  const max = Math.max(...points, 1);
+  const step = (w - pad * 2) / Math.max(points.length - 1, 1);
+  const path = points.map((v, i) => {
+    const x = pad + i * step;
+    const y = h - pad - (v / max) * (h - pad * 2);
+    return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+  }).join(" ");
+  const area = `${path} L ${pad + (points.length - 1) * step} ${h - pad} L ${pad} ${h - pad} Z`;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+      <defs>
+        <linearGradient id="bp-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#EC4899" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#bp-grad)" />
+      <path d={path} fill="none" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {points.map((v, i) => {
+        const x = pad + i * step;
+        const y = h - pad - (v / max) * (h - pad * 2);
+        return <circle key={i} cx={x} cy={y} r="4" fill="#EC4899" />;
       })}
+      {["W1","W2","W3","W4"].map((l, i) => (
+        <text key={l} x={pad + i * step} y={h - 4} fontSize="10" fill="#9D5C7E" textAnchor="middle">{l}</text>
+      ))}
     </svg>
   );
 }
 
-/* ---------- Main ---------- */
+function HealthRing({ pct, label, tone }: { pct: number; label: string; tone: string }) {
+  const size = 150, r = size/2 - 12, c = 2 * Math.PI * r;
+  const dash = `${(pct / 100) * c} ${c}`;
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#FCE7F3" strokeWidth="12" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={tone} strokeWidth="12"
+          strokeDasharray={dash} strokeLinecap="round" className="transition-all duration-700" />
+      </svg>
+      <div className="absolute inset-0 grid place-items-center text-center">
+        <div>
+          <div className="text-3xl font-bold" style={{ color: tone }}>{Math.round(pct)}%</div>
+          <div className="text-xs font-semibold text-[#9D5C7E]">{label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   MAIN COMPONENT
+============================================================ */
 export function BudgetPlanner() {
-  const [cursor, setCursor] = useState(new Date(2026, 5, 1));
-  const [currency] = useState(DEFAULT_CURRENCY);
-  const [budget] = useState(7000); // monthly spending budget cap
-  const [txns, setTxns] = useState<Txn[]>(SAMPLE_TXNS);
-  const [goals, setGoals] = useState<Goal[]>(SAMPLE_GOALS);
-  const [txnOpen, setTxnOpen] = useState(false);
-  const [goalOpen, setGoalOpen] = useState(false);
-  const [bumpId, setBumpId] = useState<string | null>(null);
+  const [tab, setTab] = useLocal<TabKey>("bp:tab", "Dashboard");
+  const [currency, setCurrency] = useLocal<CurrencyKey>("bp:currency", "MAD");
+  const [incomes, setIncomes] = useLocal<Income[]>("bp:incomes", []);
+  const [customCats, setCustomCats] = useLocal<CustomCat[]>("bp:customCats", []);
+  const [selectedCats, setSelectedCats] = useLocal<string[]>("bp:selectedCats", ["rent","food","transp","elec"]);
+  const [budget, setBudget] = useLocal<Budget>("bp:budget", {});
+  const [txns, setTxns] = useLocal<Txn[]>("bp:txns", []);
+  const [goals, setGoals] = useLocal<Goal[]>("bp:goals", []);
+  const [bills, setBills] = useLocal<Bill[]>("bp:bills", []);
 
-  function shift(dir: -1 | 1) {
-    setCursor((c) => new Date(c.getFullYear(), c.getMonth() + dir, 1));
-  }
+  const allCats: Cat[] = useMemo(() => [
+    ...DEFAULT_CATS,
+    ...customCats.map(c => ({ ...c, Icon: Package })),
+  ], [customCats]);
 
-  const monthTxns = useMemo(() => txns.filter((t) => sameMonth(t.date, cursor)), [txns, cursor]);
-  const income = monthTxns.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const spent  = monthTxns.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const remaining = income - spent;
-  const pctUsed = Math.min(100, Math.round((spent / budget) * 100));
-
-  const byCategory = useMemo(() => {
-    const map = new Map<CategoryKey, number>();
-    monthTxns.filter((t) => t.type === "expense").forEach((t) => {
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount);
-    });
-    return CATEGORIES
-      .map((c) => ({ ...c, value: map.get(c.key) ?? 0 }))
-      .filter((c) => c.value > 0)
-      .sort((a, b) => b.value - a.value);
-  }, [monthTxns]);
-
-  const allCatsForBars = useMemo(() => {
-    const map = new Map<CategoryKey, number>();
-    monthTxns.filter((t) => t.type === "expense").forEach((t) => {
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount);
-    });
-    return CATEGORIES.map((c) => ({ ...c, value: map.get(c.key) ?? 0 }));
-  }, [monthTxns]);
-
-  const maxCat = Math.max(1, ...allCatsForBars.map((c) => c.value));
-
-  const recent = useMemo(
-    () => [...monthTxns].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 8),
-    [monthTxns]
+  const totalIncome = useMemo(() => incomes.reduce((s, i) => s + toMonthly(i), 0), [incomes]);
+  const totalExpenses = useMemo(
+    () => txns.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0),
+    [txns],
+  );
+  const totalSavings = totalIncome - totalExpenses;
+  const totalBalance = useMemo(
+    () => txns.reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0) + totalIncome,
+    [txns, totalIncome],
   );
 
-  const animSpent = useCountUp(spent);
-  const animRemain = useCountUp(remaining);
-  const animIncome = useCountUp(income);
-
-  function addTxn(t: Omit<Txn, "id">) {
-    const id = uid();
-    setTxns((arr) => [{ ...t, id }, ...arr]);
-    setBumpId(id);
-    setTimeout(() => setBumpId(null), 500);
-  }
-
-  function addGoal(name: string, target: number) {
-    setGoals((g) => [...g, { id: uid(), name, target, saved: 0 }]);
-  }
-
-  function addToGoal(id: string, amount: number) {
-    setGoals((g) => g.map((x) => x.id === id ? { ...x, saved: Math.min(x.target, x.saved + amount) } : x));
-    setBumpId(id);
-    setTimeout(() => setBumpId(null), 500);
-  }
-
-  const encouragement =
-    pctUsed < 50 ? "You're doing great, queen 💖"
-    : pctUsed < 80 ? "Steady & soft — keep blooming 🌸"
-    : pctUsed < 100 ? "Mindful spending mode 🫶"
-    : "Take a breath — reset next month 🌷";
-
   return (
-    <div className="relative">
-      <BloomBubbles count={22} />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-hotpink/10 blur-3xl animate-bloom-pulse" />
-        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-rose/15 blur-3xl animate-bloom-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-petal/30 blur-3xl animate-bloom-pulse" style={{ animationDelay: "3s" }} />
-      </div>
+    <div className="relative min-h-screen" style={{ background: "#FFF0F6" }}>
+      <KawaiiBackground count={12} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* ============== Overview card ============== */}
-        <div className="lg:col-span-2 rounded-[2rem] bg-white/85 p-5 sm:p-7 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-script text-5xl text-hotpink">Budget ✿</h2>
-            <button
-              onClick={() => setTxnOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-hotpink px-4 py-2 text-sm font-semibold text-white shadow-md shadow-hotpink/30 transition hover:scale-[1.03] hover:bg-magenta"
-            >
-              <Plus className="h-4 w-4" /> Add
-            </button>
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        {/* Title + currency */}
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+          <div>
+            <h1 className="font-script text-5xl sm:text-6xl text-[#831843] leading-none">Budget ✿</h1>
+            <p className="text-sm text-[#9D5C7E] mt-1">Soft, smart money planning — your way.</p>
           </div>
-
-          {/* Month nav */}
-          <div className="mb-6 flex items-center justify-center gap-4">
-            <button onClick={() => shift(-1)} className="grid h-9 w-9 place-items-center rounded-full bg-blush text-hotpink transition hover:bg-petal">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <div className="min-w-[140px] text-center font-script text-3xl text-hotpink">
-              {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
-            </div>
-            <button onClick={() => shift(1)} className="grid h-9 w-9 place-items-center rounded-full bg-blush text-hotpink transition hover:bg-petal">
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Donut + totals */}
-          <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
-            <div className="relative mx-auto">
-              <Donut
-                slices={byCategory.length ? byCategory.map((c) => ({ value: c.value, color: c.color })) : [{ value: 1, color: "#ffd0e2" }]}
-              />
-              <div className="absolute inset-0 grid place-items-center text-center">
-                <div>
-                  <p className="text-[10px] font-bold tracking-widest text-rose/80">USED</p>
-                  <p className="font-script text-4xl text-hotpink leading-none">{pctUsed}%</p>
-                  <p className="text-xs text-rose mt-1">{fmt(spent, currency)} / {fmt(budget, currency)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <Stat label="INCOME" value={fmt(animIncome, currency)} Icon={TrendingUp} tone="green" />
-              <Stat label="SPENT"  value={fmt(animSpent, currency)}  Icon={TrendingDown} tone="rose" />
-              <Stat label="LEFT"   value={fmt(animRemain, currency)} Icon={Wallet} tone="pink" />
-
-              {/* Budget bar */}
-              <div className="col-span-3 rounded-2xl bg-blush/60 p-3">
-                <div className="mb-1.5 flex items-center justify-between text-[11px] font-bold tracking-wider text-rose">
-                  <span>BUDGET USED</span>
-                  <span>{pctUsed}%</span>
-                </div>
-                <div className="h-3 w-full overflow-hidden rounded-full bg-white">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-pink-300 via-hotpink to-magenta transition-all duration-700"
-                    style={{ width: `${pctUsed}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Donut legend */}
-          {byCategory.length > 0 && (
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-bold tracking-wider text-rose/80">
-              {byCategory.map((c) => (
-                <span key={c.key} className="inline-flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full" style={{ background: c.color }} />
-                  {c.label.toUpperCase()}
-                </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold tracking-widest text-[#9D5C7E]">CURRENCY</span>
+            <Select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyKey)}>
+              {Object.entries(CURRENCIES).map(([k, v]) => (
+                <option key={k} value={k}>{k} {v.symbol}</option>
               ))}
-            </div>
-          )}
-        </div>
-
-        {/* ============== Right column ============== */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1">
-          {/* This Month */}
-          <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "60ms" }}>
-            <div className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-hotpink/10 text-hotpink animate-bloom-pulse">
-                <Heart className="h-4 w-4 fill-hotpink/30" />
-              </span>
-              <p className="text-[10px] font-bold tracking-widest text-rose">THIS MONTH</p>
-            </div>
-            <p className="mt-1 font-script text-3xl text-hotpink leading-tight">
-              {fmt(spent, currency)} <span className="text-rose/70 text-2xl">of {fmt(budget, currency)}</span>
-            </p>
-            <p className="text-sm text-rose">{fmt(Math.max(0, budget - spent), currency)} left to play with</p>
-            <p className="mt-2 text-xs font-semibold text-magenta">{encouragement}</p>
-          </div>
-
-          {/* Savings Goals */}
-          <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "120ms" }}>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-magenta/10 text-magenta">
-                  <Target className="h-4 w-4" />
-                </span>
-                <p className="text-[10px] font-bold tracking-widest text-rose">SAVINGS GOALS</p>
-              </div>
-              <button
-                onClick={() => setGoalOpen(true)}
-                className="inline-flex items-center gap-1 rounded-full bg-blush px-2.5 py-1 text-xs font-semibold text-hotpink hover:bg-petal"
-              >
-                <Plus className="h-3 w-3" /> Goal
-              </button>
-            </div>
-            <div className="space-y-3">
-              {goals.map((g) => {
-                const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
-                return (
-                  <div key={g.id} className={bumpId === g.id ? "animate-bloom-bounce" : ""}>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-rose">{g.name}</span>
-                      <span className="text-rose/80">{fmt(g.saved, currency)} / {fmt(g.target, currency)}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-blush">
-                        <div className="h-full rounded-full bg-gradient-to-r from-pink-300 to-hotpink transition-all duration-700" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-[10px] font-bold text-hotpink w-9 text-right">{pct}%</span>
-                      <button
-                        onClick={() => addToGoal(g.id, 100)}
-                        className="grid h-6 w-6 place-items-center rounded-full bg-hotpink text-white hover:bg-magenta"
-                        aria-label={`Add to ${g.name}`}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Categories */}
-          <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in sm:col-span-2 lg:col-span-1" style={{ animationDelay: "180ms" }}>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-hotpink/10 text-hotpink">
-                <Flower2 className="h-4 w-4" />
-              </span>
-              <p className="text-[10px] font-bold tracking-widest text-rose">CATEGORIES</p>
-            </div>
-            <div className="space-y-2.5">
-              {allCatsForBars.map((c) => {
-                const pct = Math.round((c.value / maxCat) * 100);
-                const CIcon = c.Icon;
-                return (
-                  <div key={c.key} className="flex items-center gap-3">
-                    <span className={`grid h-8 w-8 place-items-center rounded-xl ${c.tint} ${c.text}`}>
-                      <CIcon className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-rose truncate">{c.label}</span>
-                        <span className="text-rose/80">{fmt(c.value, currency)}</span>
-                      </div>
-                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-blush">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${c.color}aa, ${c.color})` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            </Select>
           </div>
         </div>
-      </div>
 
-      {/* ============== Recent transactions ============== */}
-      <div className="mt-8 rounded-[2rem] bg-white/85 p-5 sm:p-7 shadow-xl shadow-rose/10 backdrop-blur animate-fade-in">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-script text-4xl text-hotpink">Recent ✿</h3>
-          <span className="text-xs font-semibold text-rose/70">{monthTxns.length} this month</span>
-        </div>
-        {recent.length === 0 ? (
-          <p className="py-8 text-center text-sm text-rose">No transactions yet — tap + Add to start 🌸</p>
-        ) : (
-          <ul className="divide-y divide-petal/60">
-            {recent.map((t) => {
-              const cat = CAT_MAP[t.category];
-              const CIcon = cat.Icon;
-              const isIncome = t.type === "income";
-              return (
-                <li key={t.id} className={`flex items-center gap-3 py-3 ${bumpId === t.id ? "animate-bloom-bounce" : ""}`}>
-                  <span className={`grid h-10 w-10 place-items-center rounded-2xl ${cat.tint} ${cat.text}`}>
-                    <CIcon className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-rose">{t.note || cat.label}</p>
-                    <p className="text-xs text-rose/70">
-                      {cat.label} · {MONTHS[t.date.getMonth()]} {t.date.getDate()}
-                    </p>
-                  </div>
-                  <span className={`text-sm font-bold ${isIncome ? "text-green-600" : "text-hotpink"}`}>
-                    {isIncome ? "+" : "−"}{fmt(t.amount, currency)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      {/* ============== For You ============== */}
-      <div className="mt-8">
-        <h3 className="font-script text-4xl text-hotpink mb-3">For You ✿</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { t: "Soft saving habit", d: "Stash 10% the day you're paid — automate the cute way.", Icon: PiggyBank },
-            { t: "Glow on a budget",  d: "Beauty buys that bloom under 100 a month.",               Icon: Sparkles },
-            { t: "No-spend Sunday",   d: "A dreamy reset to feel rich without spending.",           Icon: Heart },
-          ].map((p, i) => (
-            <div
-              key={p.t}
-              className="rounded-[1.75rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-hotpink/20 animate-fade-in"
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <div className="mb-3 flex items-center gap-2">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-hotpink/10 text-hotpink">
-                  <p.Icon className="h-5 w-5" />
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blush px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-hotpink">
-                  <Sparkles className="h-3 w-3" /> FOR YOU
-                </span>
-              </div>
-              <p className="font-script text-2xl text-hotpink">{p.t}</p>
-              <p className="text-sm text-rose mt-1">{p.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Modals */}
-      <AddTxnModal
-        open={txnOpen}
-        onClose={() => setTxnOpen(false)}
-        onAdd={addTxn}
-        currency={currency}
-        defaultDate={DEMO_TODAY}
-      />
-      <AddGoalModal
-        open={goalOpen}
-        onClose={() => setGoalOpen(false)}
-        onAdd={addGoal}
-        currency={currency}
-      />
-    </div>
-  );
-}
-
-/* ---------- Stat tile ---------- */
-function Stat({ label, value, Icon, tone }: { label: string; value: string; Icon: LucideIcon; tone: "green" | "rose" | "pink" }) {
-  const tones: Record<string, string> = {
-    green: "bg-green-100 text-green-600",
-    rose:  "bg-rose-100 text-rose",
-    pink:  "bg-hotpink/10 text-hotpink",
-  };
-  return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-petal/60">
-      <div className="flex items-center gap-2">
-        <span className={`grid h-7 w-7 place-items-center rounded-full ${tones[tone]}`}>
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        <p className="text-[10px] font-bold tracking-widest text-rose/80">{label}</p>
-      </div>
-      <p className="mt-1 font-script text-2xl text-hotpink leading-none">{value}</p>
-    </div>
-  );
-}
-
-/* ---------- Cute modal shell ---------- */
-function ModalShell({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-rose/30 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full sm:w-[420px] max-h-[90vh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] bg-white/95 p-6 shadow-2xl shadow-hotpink/20 backdrop-blur animate-scale-in"
-      >
-        <button onClick={onClose} className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-blush text-hotpink hover:bg-petal">
-          <X className="h-4 w-4" />
-        </button>
-        <h3 className="mb-4 font-script text-3xl text-hotpink">{title} ✿</h3>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Add Transaction modal ---------- */
-function AddTxnModal({
-  open, onClose, onAdd, currency, defaultDate,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (t: Omit<Txn, "id">) => void;
-  currency: string;
-  defaultDate: Date;
-}) {
-  const [type, setType] = useState<"expense" | "income">("expense");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<CategoryKey>("food");
-  const [date, setDate] = useState<Date>(defaultDate);
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    if (open) {
-      setType("expense"); setAmount(""); setCategory("food"); setDate(defaultDate); setNote("");
-    }
-  }, [open, defaultDate]);
-
-  function submit() {
-    const n = parseFloat(amount);
-    if (!n || n <= 0) return;
-    onAdd({ type, amount: n, category, date, note: note.trim() || undefined });
-    onClose();
-  }
-
-  return (
-    <ModalShell open={open} onClose={onClose} title="Add transaction">
-      {/* Type toggle */}
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-full bg-blush p-1">
-        {(["expense", "income"] as const).map((k) => (
-          <button
-            key={k}
-            onClick={() => setType(k)}
-            className={`rounded-full py-1.5 text-xs font-bold tracking-wider transition ${
-              type === k ? "bg-hotpink text-white shadow" : "text-rose"
-            }`}
-          >
-            {k.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* Amount */}
-      <label className="block text-[11px] font-bold tracking-widest text-rose mb-1">AMOUNT</label>
-      <div className="mb-4 flex items-center gap-2 rounded-2xl bg-blush/70 px-4 py-3 ring-1 ring-petal">
-        <input
-          type="number"
-          inputMode="decimal"
-          placeholder="0"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full bg-transparent font-script text-3xl text-hotpink placeholder:text-rose/40 focus:outline-none"
-        />
-        <span className="text-sm font-bold text-rose">{currency}</span>
-      </div>
-
-      {/* Category picker */}
-      <label className="block text-[11px] font-bold tracking-widest text-rose mb-2">CATEGORY</label>
-      <div className="mb-4 grid grid-cols-4 gap-2">
-        {CATEGORIES.map((c) => {
-          const active = category === c.key;
-          const CIcon = c.Icon;
-          return (
-            <button
-              key={c.key}
-              onClick={() => setCategory(c.key)}
-              className={[
-                "flex flex-col items-center gap-1 rounded-2xl p-2 transition-all active:scale-95",
-                active ? "bg-hotpink/10 ring-2 ring-hotpink animate-bloom-bounce" : "bg-blush/60 hover:bg-petal/70 hover:scale-105",
-              ].join(" ")}
-            >
-              <span className={`grid h-9 w-9 place-items-center rounded-full ${active ? "bg-hotpink text-white" : "bg-white text-hotpink ring-1 ring-petal"}`}>
-                <CIcon className="h-4 w-4" />
-              </span>
-              <span className={`text-[10px] font-semibold ${active ? "text-hotpink" : "text-rose"}`}>{c.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Date picker (cute) */}
-      <label className="block text-[11px] font-bold tracking-widest text-rose mb-2">DATE</label>
-      <CuteDatePicker value={date} onChange={setDate} />
-
-      {/* Note */}
-      <label className="block mt-4 text-[11px] font-bold tracking-widest text-rose mb-1">NOTE (optional)</label>
-      <input
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Cute coffee with mom ☕"
-        className="w-full rounded-2xl bg-blush/70 px-4 py-3 text-sm text-rose ring-1 ring-petal placeholder:text-rose/40 focus:outline-none focus:ring-2 focus:ring-hotpink"
-      />
-
-      <button
-        onClick={submit}
-        disabled={!parseFloat(amount)}
-        className="mt-6 w-full rounded-full bg-hotpink py-3 text-sm font-bold tracking-wider text-white shadow-md shadow-hotpink/30 transition hover:bg-magenta disabled:opacity-50"
-      >
-        SAVE TRANSACTION
-      </button>
-    </ModalShell>
-  );
-}
-
-/* ---------- Add Goal modal ---------- */
-function AddGoalModal({
-  open, onClose, onAdd, currency,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (name: string, target: number) => void;
-  currency: string;
-}) {
-  const [name, setName] = useState("");
-  const [target, setTarget] = useState("");
-
-  useEffect(() => {
-    if (open) { setName(""); setTarget(""); }
-  }, [open]);
-
-  function submit() {
-    const n = parseFloat(target);
-    if (!name.trim() || !n || n <= 0) return;
-    onAdd(name.trim(), n);
-    onClose();
-  }
-
-  return (
-    <ModalShell open={open} onClose={onClose} title="New goal">
-      <label className="block text-[11px] font-bold tracking-widest text-rose mb-1">GOAL NAME</label>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Dreamy trip 🌷"
-        className="mb-4 w-full rounded-2xl bg-blush/70 px-4 py-3 text-sm text-rose ring-1 ring-petal placeholder:text-rose/40 focus:outline-none focus:ring-2 focus:ring-hotpink"
-      />
-      <label className="block text-[11px] font-bold tracking-widest text-rose mb-1">TARGET</label>
-      <div className="flex items-center gap-2 rounded-2xl bg-blush/70 px-4 py-3 ring-1 ring-petal">
-        <input
-          type="number"
-          inputMode="decimal"
-          placeholder="0"
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          className="w-full bg-transparent font-script text-3xl text-hotpink placeholder:text-rose/40 focus:outline-none"
-        />
-        <span className="text-sm font-bold text-rose">{currency}</span>
-      </div>
-      <button
-        onClick={submit}
-        disabled={!name.trim() || !parseFloat(target)}
-        className="mt-6 w-full rounded-full bg-hotpink py-3 text-sm font-bold tracking-wider text-white shadow-md shadow-hotpink/30 transition hover:bg-magenta disabled:opacity-50"
-      >
-        CREATE GOAL
-      </button>
-    </ModalShell>
-  );
-}
-
-/* ---------- Cute date picker ---------- */
-function CuteDatePicker({ value, onChange }: { value: Date; onChange: (d: Date) => void }) {
-  const [open, setOpen] = useState(false);
-  const [view, setView] = useState(new Date(value.getFullYear(), value.getMonth(), 1));
-
-  useEffect(() => { setView(new Date(value.getFullYear(), value.getMonth(), 1)); }, [value]);
-
-  const days = useMemo(() => {
-    const first = new Date(view.getFullYear(), view.getMonth(), 1);
-    const startWeekday = first.getDay();
-    const totalDays = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-    const cells: (Date | null)[] = [];
-    for (let i = 0; i < startWeekday; i++) cells.push(null);
-    for (let d = 1; d <= totalDays; d++) cells.push(new Date(view.getFullYear(), view.getMonth(), d));
-    return cells;
-  }, [view]);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between rounded-2xl bg-blush/70 px-4 py-3 text-sm font-semibold text-hotpink ring-1 ring-petal hover:bg-petal/70"
-      >
-        <span>{value.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
-        <Flower2 className="h-4 w-4 text-magenta" />
-      </button>
-      {open && (
-        <div className="absolute z-10 mt-2 w-full rounded-2xl bg-white p-3 shadow-xl ring-1 ring-petal animate-scale-in">
-          <div className="mb-2 flex items-center justify-between">
-            <button onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))} className="grid h-7 w-7 place-items-center rounded-full bg-blush text-hotpink hover:bg-petal">
-              <ChevronLeft className="h-3 w-3" />
-            </button>
-            <p className="font-script text-xl text-hotpink">{MONTHS[view.getMonth()]} {view.getFullYear()}</p>
-            <button onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))} className="grid h-7 w-7 place-items-center rounded-full bg-blush text-hotpink hover:bg-petal">
-              <ChevronRight className="h-3 w-3" />
-            </button>
-          </div>
-          <div className="grid grid-cols-7 text-center text-[10px] font-bold text-rose/70">
-            {["S","M","T","W","T","F","S"].map((d, i) => <div key={i} className="py-1">{d}</div>)}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((d, i) => {
-              if (!d) return <div key={i} />;
-              const selected = d.getFullYear() === value.getFullYear() && d.getMonth() === value.getMonth() && d.getDate() === value.getDate();
+        {/* Tabs */}
+        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2 backdrop-blur bg-[#FFF0F6]/80">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {TABS.map((t) => {
+              const active = tab === t;
               return (
                 <button
-                  key={i}
-                  onClick={() => { onChange(d); setOpen(false); }}
-                  className={`aspect-square rounded-lg text-xs font-semibold transition ${
-                    selected ? "bg-hotpink text-white shadow" : "text-rose hover:bg-blush"
-                  }`}
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={[
+                    "shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all duration-200 border-[0.5px]",
+                    active
+                      ? "bg-[#EC4899] text-white shadow-md shadow-pink-400/40 border-transparent scale-[1.02]"
+                      : "bg-[#FCE7F3] text-[#9D5C7E] border-pink-400/30 hover:bg-pink-200",
+                  ].join(" ")}
                 >
-                  {d.getDate()}
+                  {t}
                 </button>
               );
             })}
           </div>
         </div>
+
+        {/* Tab content */}
+        <div key={tab} className="mt-6 animate-fade-in">
+          {tab === "Dashboard" && (
+            <DashboardTab
+              currency={currency}
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              totalSavings={totalSavings}
+              totalBalance={totalBalance}
+              txns={txns} setTxns={setTxns}
+              budget={budget}
+              selectedCats={selectedCats}
+              allCats={allCats}
+              goals={goals}
+              bills={bills}
+              setTab={setTab}
+            />
+          )}
+          {tab === "Incomes" && (
+            <IncomesTab incomes={incomes} setIncomes={setIncomes} currency={currency} />
+          )}
+          {tab === "Budget Setup" && (
+            <BudgetSetupTab
+              allCats={allCats}
+              selectedCats={selectedCats} setSelectedCats={setSelectedCats}
+              budget={budget} setBudget={setBudget}
+              customCats={customCats} setCustomCats={setCustomCats}
+              currency={currency}
+              suggestion={(catKey) => suggestionFor(catKey, totalIncome, selectedCats, allCats)}
+            />
+          )}
+          {tab === "Smart Calculator" && (
+            <SmartCalcTab
+              totalIncome={totalIncome}
+              selectedCats={selectedCats}
+              allCats={allCats}
+              budget={budget} setBudget={setBudget}
+              currency={currency}
+              setTab={setTab}
+            />
+          )}
+          {tab === "Savings Goals" && (
+            <GoalsTab goals={goals} setGoals={setGoals} currency={currency} />
+          )}
+          {tab === "Reports" && (
+            <ReportsTab
+              txns={txns} setTxns={setTxns}
+              bills={bills} setBills={setBills}
+              allCats={allCats}
+              currency={currency}
+            />
+          )}
+        </div>
+      </div>
+
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+    </div>
+  );
+}
+
+/* ============================================================
+   TOP STAT CARDS
+============================================================ */
+function StatCards({ income, expenses, savings, balance, currency }: {
+  income: number; expenses: number; savings: number; balance: number; currency: CurrencyKey;
+}) {
+  const items = [
+    { label: "Total Income",   v: income,   emoji: "💰", tone: "bg-emerald-100 text-emerald-700" },
+    { label: "Total Expenses", v: expenses, emoji: "📤", tone: "bg-rose-100 text-rose-700" },
+    { label: "Total Savings",  v: savings,  emoji: "🌸", tone: "bg-pink-100 text-hotpink" },
+    { label: "Total Balance",  v: balance,  emoji: "💎", tone: "bg-violet-100 text-violet-700" },
+  ];
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {items.map((it) => (
+        <Card key={it.label} className="hover:-translate-y-1">
+          <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone} text-lg`}>{it.emoji}</div>
+          <div className="mt-3 text-xl sm:text-2xl font-bold text-[#831843] tracking-tight font-script leading-none">{fmt(it.v, currency)}</div>
+          <div className="mt-1 text-[11px] font-bold tracking-widest text-[#9D5C7E]">{it.label.toUpperCase()}</div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   DASHBOARD TAB
+============================================================ */
+function DashboardTab(props: {
+  currency: CurrencyKey;
+  totalIncome: number; totalExpenses: number; totalSavings: number; totalBalance: number;
+  txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
+  budget: Budget; selectedCats: string[]; allCats: Cat[];
+  goals: Goal[]; bills: Bill[]; setTab: (t: TabKey) => void;
+}) {
+  const { currency, totalIncome, totalExpenses, totalSavings, totalBalance,
+    txns, setTxns, selectedCats, allCats, goals, bills, setTab } = props;
+
+  // Donut data: expense totals by category
+  const donutData = useMemo(() => {
+    const byCat: Record<string, number> = {};
+    txns.filter(t => t.type === "expense").forEach(t => {
+      byCat[t.catKey] = (byCat[t.catKey] ?? 0) + t.amount;
+    });
+    const palette = ["#EC4899","#F472B6","#FB7185","#F9A8D4","#C026D3","#E11D48","#FBCFE8","#A21CAF"];
+    return Object.entries(byCat).map(([k, v], i) => {
+      const cat = allCats.find(c => c.key === k);
+      return { label: cat?.label ?? k, value: v, color: palette[i % palette.length] };
+    });
+  }, [txns, allCats]);
+
+  // Weekly trend (current month)
+  const trend = useMemo(() => {
+    const buckets = [0, 0, 0, 0];
+    const now = new Date();
+    txns.filter(t => t.type === "expense").forEach(t => {
+      const d = new Date(t.date);
+      if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return;
+      const wk = Math.min(3, Math.floor((d.getDate() - 1) / 7));
+      buckets[wk] += t.amount;
+    });
+    return buckets;
+  }, [txns]);
+
+  // Health
+  const savingsPct = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
+  const health = savingsPct > 20
+    ? { tone: "#16A34A", label: "Healthy", tip: "Beautiful! You're saving with intention 🌿" }
+    : savingsPct >= 10
+      ? { tone: "#F59E0B", label: "Watch Out", tip: "Almost there — trim a want category this week 🌷" }
+      : { tone: "#EF4444", label: "Over Budget", tip: "Take a soft pause and review your wants 💗" };
+
+  // Inline add txn
+  const [amount, setAmount] = useState("");
+  const [catKey, setCatKey] = useState(selectedCats[0] ?? allCats[0].key);
+  const [desc, setDesc] = useState("");
+  const [date, setDate] = useState(todayISO());
+  const [mood, setMood] = useState<MoodKey>("planned");
+
+  function addTxn() {
+    const amt = parseFloat(amount);
+    if (!amt) return;
+    setTxns(prev => [{ id: uid(), amount: amt, catKey, description: desc, date, mood, type: "expense" }, ...prev]);
+    setAmount(""); setDesc("");
+  }
+
+  return (
+    <div className="space-y-5">
+      <StatCards income={totalIncome} expenses={totalExpenses} savings={totalSavings} balance={totalBalance} currency={currency} />
+
+      {/* Overview: donut + trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-script text-3xl text-[#831843]">Expense Breakdown</h3>
+            <PiggyBank className="h-5 w-5 text-[#EC4899]" />
+          </div>
+          {donutData.length === 0 ? (
+            <EmptyState emoji="🍩" text="No expenses yet — log one below to see the breakdown." />
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Donut data={donutData} total={totalExpenses} currency={currency} />
+              <ul className="flex-1 space-y-1.5 w-full">
+                {donutData.map(d => (
+                  <li key={d.label} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-[#831843]">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
+                      {d.label}
+                    </span>
+                    <span className="text-[#9D5C7E]">{Math.round((d.value / totalExpenses) * 100)}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-script text-3xl text-[#831843]">Spending Trend</h3>
+            <LineIcon className="h-5 w-5 text-[#EC4899]" />
+          </div>
+          <LineChart points={trend} />
+        </Card>
+      </div>
+
+      {/* Bills + Goals preview + Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
+            <button onClick={() => setTab("Reports")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
+          </div>
+          {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." compact /> : (
+            <ul className="space-y-2">
+              {bills.slice(0, 3).map(b => {
+                const d = daysUntil(b.due);
+                const status = b.paid ? { l: "Paid 💚", c: "bg-emerald-100 text-emerald-700" }
+                  : d < 0 ? { l: "Overdue 🔴", c: "bg-red-100 text-red-700" }
+                  : { l: "Upcoming 🟡", c: "bg-amber-100 text-amber-700" };
+                return (
+                  <li key={b.id} className="flex items-center justify-between rounded-xl bg-pink-50/60 px-3 py-2 text-sm">
+                    <div>
+                      <div className="font-semibold text-[#831843]">{b.name}</div>
+                      <div className="text-xs text-[#9D5C7E]">in {d} days · {fmt(b.amount, currency)}</div>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${status.c}`}>{status.l}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-script text-2xl text-[#831843]">Top Goals</h3>
+            <button onClick={() => setTab("Savings Goals")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
+          </div>
+          {goals.length === 0 ? <EmptyState emoji="🎯" text="No goals yet." compact /> : (
+            <ul className="space-y-3">
+              {goals.slice(0, 3).map(g => {
+                const p = Math.min(100, (g.saved / g.target) * 100);
+                return (
+                  <li key={g.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold text-[#831843]">{g.name}</span>
+                      <span className="text-[#9D5C7E]">{Math.round(p)}%</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-pink-100 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${p}%`, background: "linear-gradient(90deg,#C084FC,#EC4899)" }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="flex flex-col items-center text-center">
+          <h3 className="font-script text-2xl text-[#831843] mb-2">Budget Health</h3>
+          <HealthRing pct={Math.max(0, Math.min(100, savingsPct))} label={health.label} tone={health.tone} />
+          <p className="mt-3 text-xs text-[#9D5C7E]">{health.tip}</p>
+        </Card>
+      </div>
+
+      {/* Inline Add Transaction */}
+      <Card>
+        <div className="flex items-center gap-2 mb-3">
+          <Plus className="h-4 w-4 text-[#EC4899]" />
+          <h3 className="font-script text-3xl text-[#831843]">Add Transaction</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <Input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="lg:col-span-1" />
+          <Select value={catKey} onChange={(e) => setCatKey(e.target.value)} className="lg:col-span-1">
+            {(selectedCats.length ? selectedCats : allCats.map(c => c.key)).map(k => {
+              const c = allCats.find(x => x.key === k);
+              return <option key={k} value={k}>{c?.emoji} {c?.label}</option>;
+            })}
+          </Select>
+          <Input placeholder="Description (optional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="lg:col-span-2" />
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="lg:col-span-1" />
+          <Select value={mood} onChange={(e) => setMood(e.target.value as MoodKey)} className="lg:col-span-1">
+            {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+          </Select>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <PrimaryBtn onClick={addTxn}><Plus className="h-4 w-4" /> Save Transaction</PrimaryBtn>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   INCOMES TAB
+============================================================ */
+function IncomesTab({ incomes, setIncomes, currency }: {
+  incomes: Income[]; setIncomes: (v: Income[] | ((p: Income[]) => Income[])) => void; currency: CurrencyKey;
+}) {
+  const total = incomes.reduce((s, i) => s + toMonthly(i), 0);
+  function add() {
+    setIncomes(prev => [...prev, { id: uid(), source: "Salary", amount: 0, frequency: "Monthly" }]);
+  }
+  function update(id: string, patch: Partial<Income>) {
+    setIncomes(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
+  }
+  function remove(id: string) {
+    setIncomes(prev => prev.filter(i => i.id !== id));
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="font-script text-4xl text-[#831843]">My Income Sources 💰</h2>
+        <PrimaryBtn onClick={add}><Plus className="h-4 w-4" /> Add Income Source</PrimaryBtn>
+      </div>
+
+      {incomes.length === 0 ? (
+        <Card><EmptyState emoji="💸" text="Add your first income source to begin." /></Card>
+      ) : (
+        <Card>
+          <ul className="space-y-3">
+            {incomes.map(i => (
+              <li key={i.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 p-3">
+                <Select value={i.source} onChange={(e) => update(i.id, { source: e.target.value })} className="sm:col-span-4">
+                  {INCOME_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+                <Input type="number" value={i.amount || ""} onChange={(e) => update(i.id, { amount: parseFloat(e.target.value) || 0 })}
+                  placeholder="Amount" className="sm:col-span-3" />
+                <Select value={i.frequency} onChange={(e) => update(i.id, { frequency: e.target.value as Frequency })} className="sm:col-span-3">
+                  {FREQUENCIES.map(f => <option key={f} value={f}>{f}</option>)}
+                </Select>
+                <div className="sm:col-span-2 flex items-center justify-between sm:justify-end gap-2">
+                  <span className="text-xs text-[#9D5C7E]">≈ {fmt(toMonthly(i), currency)}/mo</span>
+                  <button onClick={() => remove(i.id)} className="grid h-9 w-9 place-items-center rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-pink-100 to-rose-100 px-4 py-3">
+            <span className="font-semibold text-[#831843]">Total Monthly Income</span>
+            <span className="font-script text-3xl text-[#EC4899]">{fmt(total, currency)}</span>
+          </div>
+        </Card>
       )}
     </div>
   );
+}
+
+/* ============================================================
+   BUDGET SETUP TAB
+============================================================ */
+function suggestionFor(catKey: string, totalIncome: number, selectedCats: string[], allCats: Cat[]): number {
+  if (totalIncome <= 0) return 0;
+  const cat = allCats.find(c => c.key === catKey);
+  if (!cat) return 0;
+  const pool = cat.group === "need" ? totalIncome * 0.5 : cat.group === "want" ? totalIncome * 0.3 : totalIncome * 0.2;
+  const sameGroup = selectedCats.filter(k => allCats.find(c => c.key === k)?.group === cat.group).length || 1;
+  return Math.round(pool / sameGroup);
+}
+
+function BudgetSetupTab(props: {
+  allCats: Cat[]; selectedCats: string[]; setSelectedCats: (v: string[] | ((p: string[]) => string[])) => void;
+  budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
+  customCats: CustomCat[]; setCustomCats: (v: CustomCat[] | ((p: CustomCat[]) => CustomCat[])) => void;
+  currency: CurrencyKey;
+  suggestion: (catKey: string) => number;
+}) {
+  const { allCats, selectedCats, setSelectedCats, budget, setBudget, customCats, setCustomCats, currency, suggestion } = props;
+  const [showCustom, setShowCustom] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [customEmoji, setCustomEmoji] = useState("✨");
+  const [customGroup, setCustomGroup] = useState<Need>("want");
+  const [saved, setSaved] = useState(false);
+
+  function toggle(k: string) {
+    setSelectedCats(prev => prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]);
+  }
+  function addCustom() {
+    const name = customName.trim();
+    if (!name) return;
+    const key = "cu-" + uid();
+    setCustomCats(prev => [...prev, { key, label: name, emoji: customEmoji, group: customGroup }]);
+    setSelectedCats(prev => [...prev, key]);
+    setCustomName(""); setCustomEmoji("✨");
+  }
+  function save() {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1600);
+  }
+
+  return (
+    <div className="space-y-5">
+      <h2 className="font-script text-4xl text-[#831843]">Set Up Your Expenses 📋</h2>
+
+      <Card>
+        <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-3">STEP 1 · CHOOSE CATEGORIES</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {allCats.map(c => {
+            const on = selectedCats.includes(c.key);
+            return (
+              <button key={c.key} onClick={() => toggle(c.key)}
+                className={[
+                  "flex flex-col items-center gap-1 rounded-2xl p-3 text-sm font-semibold transition-all duration-200 border-[0.5px]",
+                  on ? "bg-[#EC4899] text-white border-transparent shadow-md shadow-pink-400/30 scale-[1.02]"
+                     : "bg-white/80 text-[#831843] border-pink-300/40 hover:bg-pink-50",
+                ].join(" ")}
+              >
+                <span className="text-2xl">{c.emoji}</span>
+                <span className="text-center leading-tight text-xs">{c.label}</span>
+              </button>
+            );
+          })}
+          <button onClick={() => setShowCustom(v => !v)}
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl p-3 text-sm font-semibold border-[0.5px] border-dashed border-pink-400/60 text-[#EC4899] bg-pink-50/40 hover:bg-pink-100">
+            <Plus className="h-5 w-5" /> Custom
+          </button>
+        </div>
+
+        {showCustom && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-12 gap-3 rounded-2xl bg-pink-50/60 p-3">
+            <Input placeholder="Category name" value={customName} onChange={(e) => setCustomName(e.target.value)} className="sm:col-span-5" />
+            <Input placeholder="Emoji" maxLength={2} value={customEmoji} onChange={(e) => setCustomEmoji(e.target.value)} className="sm:col-span-2" />
+            <Select value={customGroup} onChange={(e) => setCustomGroup(e.target.value as Need)} className="sm:col-span-3">
+              <option value="need">Need</option>
+              <option value="want">Want</option>
+              <option value="savings">Savings</option>
+            </Select>
+            <PrimaryBtn onClick={addCustom} className="sm:col-span-2"><Plus className="h-4 w-4" /> Add</PrimaryBtn>
+          </div>
+        )}
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E]">STEP 2 · SET AMOUNTS</h3>
+          <div className="flex items-center gap-2">
+            {saved && <span className="text-xs font-semibold text-emerald-700 inline-flex items-center gap-1"><Check className="h-3 w-3" /> Saved</span>}
+            <PrimaryBtn onClick={save}>Save Budget</PrimaryBtn>
+          </div>
+        </div>
+        {selectedCats.length === 0 ? (
+          <EmptyState emoji="🌷" text="Pick a few categories above to start." />
+        ) : (
+          <ul className="space-y-2">
+            {selectedCats.map(k => {
+              const c = allCats.find(x => x.key === k);
+              if (!c) return null;
+              const sugg = suggestion(k);
+              return (
+                <li key={k} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
+                  <div className="sm:col-span-5 flex items-center gap-2">
+                    <span className="text-xl">{c.emoji}</span>
+                    <span className="font-semibold text-[#831843]">{c.label}</span>
+                  </div>
+                  <div className="sm:col-span-4">
+                    <Input type="number" value={budget[k] || ""} placeholder="0"
+                      onChange={(e) => setBudget(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }))} />
+                  </div>
+                  <div className="sm:col-span-3 text-xs text-[#9D5C7E]">
+                    {sugg > 0 && <>Recommended: <span className="font-semibold text-[#EC4899]">{fmt(sugg, currency)}</span></>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   SMART CALCULATOR
+============================================================ */
+function SmartCalcTab(props: {
+  totalIncome: number; selectedCats: string[]; allCats: Cat[];
+  budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
+  currency: CurrencyKey; setTab: (t: TabKey) => void;
+}) {
+  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab } = props;
+
+  if (totalIncome <= 0) {
+    return (
+      <Card>
+        <EmptyState emoji="🌼" text="Add your income first so we can suggest amounts." />
+        <div className="text-center mt-3">
+          <PrimaryBtn onClick={() => setTab("Incomes")}>Go to Incomes</PrimaryBtn>
+        </div>
+      </Card>
+    );
+  }
+
+  const needs = totalIncome * 0.5, wants = totalIncome * 0.3, savings = totalIncome * 0.2;
+  const sel = selectedCats.map(k => allCats.find(c => c.key === k)).filter(Boolean) as Cat[];
+  const needCount = sel.filter(c => c.group === "need").length || 1;
+  const wantCount = sel.filter(c => c.group === "want").length || 1;
+
+  const items = sel.map(c => {
+    const sugg = c.group === "need" ? needs / needCount : c.group === "want" ? wants / wantCount : savings;
+    const set = budget[c.key] || 0;
+    const over = set - sugg;
+    let dot = "bg-emerald-400", tip = "Right on track 🌿";
+    if (over > sugg * 0.1) { dot = "bg-red-400"; tip = "Over budget — try to trim a bit"; }
+    else if (over > 0) { dot = "bg-amber-400"; tip = "Slightly over — almost perfect"; }
+    return { c, sugg, set, dot, tip };
+  });
+
+  function applyAll() {
+    setBudget(prev => {
+      const next = { ...prev };
+      items.forEach(({ c, sugg }) => { next[c.key] = Math.round(sugg); });
+      return next;
+    });
+  }
+
+  const summary = [
+    { label: "Needs",    v: needs,   color: "#EC4899" },
+    { label: "Wants",    v: wants,   color: "#F472B6" },
+    { label: "Savings",  v: savings, color: "#C084FC" },
+  ];
+  const totalBudget = items.reduce((s, i) => s + i.set, 0);
+  const remaining = totalIncome - totalBudget;
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="font-script text-4xl text-[#831843]">Smart Budget Calculator ✨</h2>
+        <p className="text-sm text-[#9D5C7E]">Based on your income, here's how we suggest you allocate.</p>
+      </div>
+
+      <Card>
+        <ul className="space-y-2">
+          {items.map(({ c, sugg, set, dot, tip }) => (
+            <li key={c.key} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
+              <div className="sm:col-span-5 flex items-center gap-2">
+                <span className="text-xl">{c.emoji}</span>
+                <span className="font-semibold text-[#831843]">{c.label}</span>
+              </div>
+              <div className="sm:col-span-3">
+                <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2 py-0.5 text-xs font-semibold text-hotpink">
+                  <Sparkles className="h-3 w-3" /> {fmt(sugg, currency)}
+                </span>
+              </div>
+              <div className="sm:col-span-2 text-sm text-[#831843]">Your: <span className="font-semibold">{fmt(set, currency)}</span></div>
+              <div className="sm:col-span-2 flex items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+                <span className="text-xs text-[#9D5C7E]">{tip}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <h3 className="font-script text-2xl text-[#831843] mb-2">Allocation Summary</h3>
+          <div className="space-y-2">
+            {summary.map(s => (
+              <div key={s.label}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-semibold text-[#831843]">{s.label}</span>
+                  <span className="text-[#9D5C7E]">{fmt(s.v, currency)} · {Math.round((s.v / totalIncome) * 100)}%</span>
+                </div>
+                <div className="mt-1 h-2 rounded-full bg-pink-100 overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${(s.v / totalIncome) * 100}%`, background: s.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`mt-4 rounded-xl px-3 py-2 text-sm font-semibold ${
+            remaining >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+          }`}>
+            Remaining: {fmt(remaining, currency)}
+          </div>
+          <div className="mt-4">
+            <PrimaryBtn onClick={applyAll}><Sparkles className="h-4 w-4" /> Apply suggested amounts</PrimaryBtn>
+          </div>
+        </Card>
+
+        <Card className="flex flex-col items-center">
+          <h3 className="font-script text-2xl text-[#831843] mb-2">50 / 30 / 20</h3>
+          <Donut
+            data={summary.map(s => ({ label: s.label, value: s.v, color: s.color }))}
+            total={totalIncome} currency={currency}
+          />
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SAVINGS GOALS TAB
+============================================================ */
+function GoalsTab({ goals, setGoals, currency }: {
+  goals: Goal[]; setGoals: (v: Goal[] | ((p: Goal[]) => Goal[])) => void; currency: CurrencyKey;
+}) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [name, setName] = useState("");
+  const [target, setTarget] = useState("");
+  const [monthly, setMonthly] = useState("");
+
+  function add(prefName?: string) {
+    const n = (prefName ?? name).trim();
+    if (!n) return;
+    setGoals(prev => [...prev, { id: uid(), name: n, target: parseFloat(target) || 0, saved: 0, monthly: parseFloat(monthly) || 0 }]);
+    setName(""); setTarget(""); setMonthly(""); setShowAdd(false);
+  }
+  function update(id: string, patch: Partial<Goal>) {
+    setGoals(prev => prev.map(g => g.id === id ? { ...g, ...patch } : g));
+  }
+  function remove(id: string) { setGoals(prev => prev.filter(g => g.id !== id)); }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="font-script text-4xl text-[#831843]">My Goals 🎯</h2>
+        <PrimaryBtn onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" /> Add New Goal</PrimaryBtn>
+      </div>
+
+      <Card>
+        <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-2">QUICK ADD</h3>
+        <div className="flex flex-wrap gap-2">
+          {PRESET_GOALS.map(p => (
+            <button key={p} onClick={() => add(p)}
+              className="rounded-full bg-[#FCE7F3] px-3 py-1.5 text-xs font-semibold text-[#9D5C7E] border-[0.5px] border-pink-400/30 hover:bg-pink-200 transition">
+              + {p}
+            </button>
+          ))}
+        </div>
+
+        {showAdd && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-12 gap-3 rounded-2xl bg-pink-50/60 p-3">
+            <Input placeholder="Goal name" value={name} onChange={(e) => setName(e.target.value)} className="sm:col-span-5" />
+            <Input type="number" placeholder="Target amount" value={target} onChange={(e) => setTarget(e.target.value)} className="sm:col-span-3" />
+            <Input type="number" placeholder="Monthly saving" value={monthly} onChange={(e) => setMonthly(e.target.value)} className="sm:col-span-2" />
+            <PrimaryBtn onClick={() => add()} className="sm:col-span-2">Add</PrimaryBtn>
+          </div>
+        )}
+      </Card>
+
+      {goals.length === 0 ? (
+        <Card><EmptyState emoji="🎯" text="No goals yet — pick a preset or add your own." /></Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {goals.map(g => {
+            const pct = Math.min(100, g.target > 0 ? (g.saved / g.target) * 100 : 0);
+            const remaining = Math.max(0, g.target - g.saved);
+            const months = g.monthly > 0 ? Math.ceil(remaining / g.monthly) : null;
+            const status = pct >= 100 ? { l: "Achieved 💖", c: "bg-pink-100 text-hotpink" }
+              : g.saved > 0 ? { l: "On Track 💚", c: "bg-emerald-100 text-emerald-700" }
+              : { l: "Not Started ⚪", c: "bg-slate-100 text-slate-600" };
+            return (
+              <Card key={g.id}>
+                <div className="flex items-start justify-between gap-2">
+                  <input value={g.name} onChange={(e) => update(g.id, { name: e.target.value })}
+                    className="bg-transparent font-script text-2xl text-[#831843] outline-none focus:bg-pink-50 rounded px-1" />
+                  <button onClick={() => remove(g.id)} className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <span className={`inline-block mt-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${status.c}`}>{status.l}</span>
+                <div className="mt-3 relative h-3 rounded-full bg-pink-100 overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, background: "linear-gradient(90deg,#C084FC,#EC4899)" }} />
+                  <span className="absolute inset-0 text-center text-[10px] font-bold text-[#831843] leading-3 pt-0.5">{Math.round(pct)}%</span>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                  <label className="block">
+                    <span className="text-[10px] tracking-widest text-[#9D5C7E]">SAVED</span>
+                    <Input type="number" value={g.saved || ""} onChange={(e) => update(g.id, { saved: parseFloat(e.target.value) || 0 })} />
+                  </label>
+                  <label className="block">
+                    <span className="text-[10px] tracking-widest text-[#9D5C7E]">TARGET</span>
+                    <Input type="number" value={g.target || ""} onChange={(e) => update(g.id, { target: parseFloat(e.target.value) || 0 })} />
+                  </label>
+                  <label className="block">
+                    <span className="text-[10px] tracking-widest text-[#9D5C7E]">MONTHLY</span>
+                    <Input type="number" value={g.monthly || ""} onChange={(e) => update(g.id, { monthly: parseFloat(e.target.value) || 0 })} />
+                  </label>
+                </div>
+                <p className="mt-2 text-xs text-[#9D5C7E]">
+                  {months !== null
+                    ? <>At this rate you'll reach it in <span className="font-semibold text-[#EC4899]">{months} months</span>.</>
+                    : "Set a monthly amount to estimate timing."}
+                </p>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   REPORTS TAB
+============================================================ */
+function ReportsTab(props: {
+  txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
+  bills: Bill[]; setBills: (v: Bill[] | ((p: Bill[]) => Bill[])) => void;
+  allCats: Cat[]; currency: CurrencyKey;
+}) {
+  const { txns, setTxns, bills, setBills, allCats, currency } = props;
+  const now = new Date();
+  const [month, setMonth] = useState({ y: now.getFullYear(), m: now.getMonth() });
+  const [sortBy, setSortBy] = useState<"date" | "amount">("date");
+  const [filterCat, setFilterCat] = useState("");
+  const [filterMood, setFilterMood] = useState("");
+
+  const filtered = useMemo(() => {
+    let list = txns.filter(t => {
+      const d = new Date(t.date);
+      return d.getFullYear() === month.y && d.getMonth() === month.m;
+    });
+    if (filterCat) list = list.filter(t => t.catKey === filterCat);
+    if (filterMood) list = list.filter(t => t.mood === filterMood);
+    list.sort((a, b) => sortBy === "amount" ? b.amount - a.amount : (a.date < b.date ? 1 : -1));
+    return list;
+  }, [txns, month, sortBy, filterCat, filterMood]);
+
+  function shiftMonth(dir: -1 | 1) {
+    setMonth(({ y, m }) => {
+      const d = new Date(y, m + dir, 1);
+      return { y: d.getFullYear(), m: d.getMonth() };
+    });
+  }
+
+  function exportCSV() {
+    const rows = [["Date","Type","Category","Description","Amount","Mood"]];
+    txns.forEach(t => {
+      const c = allCats.find(x => x.key === t.catKey);
+      rows.push([t.date, t.type, c?.label ?? t.catKey, t.description, String(t.amount), t.mood]);
+    });
+    download("transactions.csv", rows.map(r => r.map(csv).join(",")).join("\n"));
+  }
+  function exportSummary() {
+    const income = txns.filter(t => t.type === "income").reduce((s,t) => s + t.amount, 0);
+    const expense = txns.filter(t => t.type === "expense").reduce((s,t) => s + t.amount, 0);
+    const rows = [
+      ["Metric","Amount"],
+      ["Total Income", String(income)],
+      ["Total Expenses", String(expense)],
+      ["Net Savings", String(income - expense)],
+    ];
+    download("budget-summary.csv", rows.map(r => r.map(csv).join(",")).join("\n"));
+  }
+
+  // Bills inline form
+  const [billOpen, setBillOpen] = useState(false);
+  const [bName, setBName] = useState("");
+  const [bDate, setBDate] = useState(todayISO());
+  const [bAmt, setBAmt] = useState("");
+
+  function addBill() {
+    if (!bName || !bAmt) return;
+    setBills(prev => [...prev, { id: uid(), name: bName, due: bDate, amount: parseFloat(bAmt) || 0, paid: false }]);
+    setBName(""); setBAmt(""); setBDate(todayISO()); setBillOpen(false);
+  }
+  function toggleBill(id: string) { setBills(prev => prev.map(b => b.id === id ? { ...b, paid: !b.paid } : b)); }
+  function removeBill(id: string) { setBills(prev => prev.filter(b => b.id !== id)); }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="font-script text-4xl text-[#831843]">My Reports 📊</h2>
+        <div className="flex items-center gap-2">
+          <button onClick={() => shiftMonth(-1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#FCE7F3] text-[#9D5C7E] hover:bg-pink-200 transition">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="font-semibold text-[#831843] min-w-[110px] text-center">
+            {new Date(month.y, month.m).toLocaleString(undefined, { month: "long", year: "numeric" })}
+          </span>
+          <button onClick={() => shiftMonth(1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#FCE7F3] text-[#9D5C7E] hover:bg-pink-200 transition">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 className="font-script text-2xl text-[#831843]">Transactions</h3>
+          <div className="flex flex-wrap gap-2">
+            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}>
+              <option value="date">Sort: Date</option>
+              <option value="amount">Sort: Amount</option>
+            </Select>
+            <Select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
+              <option value="">All categories</option>
+              {allCats.map(c => <option key={c.key} value={c.key}>{c.emoji} {c.label}</option>)}
+            </Select>
+            <Select value={filterMood} onChange={(e) => setFilterMood(e.target.value)}>
+              <option value="">All moods</option>
+              {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+            </Select>
+          </div>
+        </div>
+        {filtered.length === 0 ? (
+          <EmptyState emoji="🧾" text="No transactions for this month." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-[11px] tracking-widest text-[#9D5C7E]">
+                <tr><th className="py-2">DATE</th><th>CATEGORY</th><th>DESCRIPTION</th><th>MOOD</th><th>TYPE</th><th className="text-right">AMOUNT</th><th></th></tr>
+              </thead>
+              <tbody>
+                {filtered.map(t => {
+                  const c = allCats.find(x => x.key === t.catKey);
+                  const mood = MOODS.find(m => m.key === t.mood)!;
+                  return (
+                    <tr key={t.id} className="border-t border-pink-100">
+                      <td className="py-2 text-[#831843]">{t.date}</td>
+                      <td className="text-[#831843]"><span className="mr-1">{c?.emoji}</span>{c?.label}</td>
+                      <td className="text-[#9D5C7E]">{t.description || "—"}</td>
+                      <td><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}>{mood.emoji} {mood.label}</span></td>
+                      <td>{t.type === "income"
+                        ? <span className="inline-flex items-center text-emerald-700 text-xs font-semibold"><ArrowUpRight className="h-3 w-3" /> Income</span>
+                        : <span className="inline-flex items-center text-rose-700 text-xs font-semibold"><ArrowDownRight className="h-3 w-3" /> Expense</span>}</td>
+                      <td className="text-right font-semibold text-[#831843]">{fmt(t.amount, currency)}</td>
+                      <td className="text-right">
+                        <button onClick={() => setTxns(prev => prev.filter(x => x.id !== t.id))} className="text-rose-500 hover:text-rose-700">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Bills */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
+          <GhostBtn onClick={() => setBillOpen(v => !v)}><Plus className="h-4 w-4" /> Add Bill</GhostBtn>
+        </div>
+        {billOpen && (
+          <div className="mb-3 grid grid-cols-1 sm:grid-cols-12 gap-3 rounded-2xl bg-pink-50/60 p-3">
+            <Input placeholder="Bill name" value={bName} onChange={(e) => setBName(e.target.value)} className="sm:col-span-4" />
+            <Input type="date" value={bDate} onChange={(e) => setBDate(e.target.value)} className="sm:col-span-3" />
+            <Input type="number" placeholder="Amount" value={bAmt} onChange={(e) => setBAmt(e.target.value)} className="sm:col-span-3" />
+            <PrimaryBtn onClick={addBill} className="sm:col-span-2">Add</PrimaryBtn>
+          </div>
+        )}
+        {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." /> : (
+          <ul className="space-y-2">
+            {bills.map(b => {
+              const d = daysUntil(b.due);
+              const status = b.paid ? { l: "Paid 💚", c: "bg-emerald-100 text-emerald-700" }
+                : d < 0 ? { l: "Overdue 🔴", c: "bg-red-100 text-red-700" }
+                : { l: "Upcoming 🟡", c: "bg-amber-100 text-amber-700" };
+              return (
+                <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-pink-50/40 px-3 py-2">
+                  <div>
+                    <div className="font-semibold text-[#831843]">{b.name}</div>
+                    <div className="text-xs text-[#9D5C7E]">{b.due} · in {d} days · {fmt(b.amount, currency)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${status.c}`}>{status.l}</span>
+                    <button onClick={() => toggleBill(b.id)} className="rounded-full bg-[#EC4899] text-white text-xs font-semibold px-3 py-1 hover:bg-[#DB2777]">
+                      {b.paid ? "Mark Unpaid" : "Mark as Paid"}
+                    </button>
+                    <button onClick={() => removeBill(b.id)} className="grid h-7 w-7 place-items-center rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <Card>
+        <h3 className="font-script text-2xl text-[#831843] mb-3">Export</h3>
+        <div className="flex flex-wrap gap-2">
+          <PrimaryBtn onClick={exportCSV}><Download className="h-4 w-4" /> Export to CSV</PrimaryBtn>
+          <GhostBtn onClick={exportSummary}><Download className="h-4 w-4" /> Export Budget Summary</GhostBtn>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   EMPTY + UTIL
+============================================================ */
+function EmptyState({ emoji, text, compact }: { emoji: string; text: string; compact?: boolean }) {
+  return (
+    <div className={`text-center ${compact ? "py-4" : "py-8"}`}>
+      <div className={`${compact ? "text-3xl" : "text-5xl"} mb-2`}>{emoji}</div>
+      <p className="text-sm text-[#9D5C7E]">{text}</p>
+    </div>
+  );
+}
+
+function csv(v: string) {
+  if (/[",\n]/.test(v)) return `"${v.replace(/"/g, '""')}"`;
+  return v;
+}
+function download(name: string, body: string) {
+  const blob = new Blob([body], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
