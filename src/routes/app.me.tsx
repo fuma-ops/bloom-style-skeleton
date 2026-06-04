@@ -134,43 +134,43 @@ function MePage() {
       <BloomBubbles count={10} />
 
       {/* HEADER */}
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.45)]">
+      <section className="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.45)]">
         <img
           src="/images/me-header.png"
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-tr from-magenta/40 via-hotpink/15 to-transparent" />
-        <div className="relative flex flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:items-end sm:gap-6 sm:px-10 sm:py-12 sm:text-left">
+        <div className="relative flex items-center gap-3 px-4 py-4 text-left sm:items-end sm:gap-6 sm:px-10 sm:py-12">
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-full bg-white/60 blur-md" />
             <img
               src="/images/me-avatar.png"
               alt="Your avatar"
-              className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-white/90 object-cover shadow-xl shadow-hotpink/30"
+              className="relative h-16 w-16 sm:h-32 sm:w-32 rounded-full border-2 sm:border-4 border-white/90 object-cover shadow-xl shadow-hotpink/30"
             />
           </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <h1 className="font-script text-5xl sm:text-6xl text-white drop-shadow-[0_2px_6px_oklch(0.4_0.2_350/0.6)] leading-none">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-script text-3xl sm:text-6xl text-white drop-shadow-[0_2px_6px_oklch(0.4_0.2_350/0.6)] leading-none">
                 Sofia
               </h1>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-hotpink shadow">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold text-hotpink shadow">
                 <Crown className="h-3 w-3" strokeWidth={2} /> PREMIUM
               </span>
             </div>
-            <p className="mt-1 text-sm font-medium text-white/95 drop-shadow">blooming since 2026 ✿</p>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm font-medium text-white/95 drop-shadow">blooming since 2026 ✿</p>
           </div>
-          <button className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-hotpink shadow-md transition hover:bg-white">
-            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} /> Edit profile
+          <button className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-hotpink shadow-md transition hover:bg-white shrink-0">
+            <Pencil className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={1.8} /> <span className="hidden sm:inline">Edit profile</span><span className="sm:hidden">Edit</span>
           </button>
         </div>
       </section>
 
       {/* JOURNEY */}
-      <section className="mt-8">
+      <section className="mt-5 sm:mt-8">
         <SectionTitle hint="this week">Your Bloom journey</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
           <Stat Icon={Droplet} label="Cycle phase" value="Luteal" />
           <Stat Icon={Wallet} label="Budget left" value={840} suffix="$" />
           <Stat Icon={Footprints} label="Steps today" value={6420} />
@@ -179,9 +179,9 @@ function MePage() {
       </section>
 
       {/* FAVORITES */}
-      <section className="mt-10">
+      <section className="mt-6 sm:mt-10">
         <SectionTitle>Favorites & saved</SectionTitle>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
           <FavCard title="Saved articles" Icon={BookOpen} to="/app/read" items={favorites.articles.map((a) => ({ title: a.title, meta: a.tag }))} empty="Nothing saved yet — explore the Blog" />
           <FavCard title="Yoga flows" Icon={Heart} to="/app/tools" items={favorites.flows.map((f) => ({ title: f.title, meta: `${f.mins} min` }))} empty="No flows saved yet — discover Yoga" />
           <FavCard title="Recipes" Icon={UtensilsCrossed} to="/app/tools" items={favorites.recipes.map((r) => ({ title: r.title, meta: `${r.mins} min` }))} empty="No recipes yet — browse Kitchen" />
@@ -189,12 +189,12 @@ function MePage() {
       </section>
 
       {/* GOALS */}
-      <section className="mt-10">
+      <section className="mt-6 sm:mt-10">
         <SectionTitle>My goals & intentions</SectionTitle>
         {goals.length === 0 ? (
           <EmptyCard text="Set your first intention" cta="Create a goal" to="/app/tools" Icon={Target} />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {goals.map((g) => (
               <div key={g.title} className="rounded-3xl bg-white/85 backdrop-blur p-5 border border-petal/50 shadow-[0_8px_24px_-12px_oklch(0.7_0.18_350/0.3)]">
                 <div className="flex items-center gap-2 text-rose">
@@ -217,14 +217,14 @@ function MePage() {
       </section>
 
       {/* ACHIEVEMENTS */}
-      <section className="mt-10">
+      <section className="mt-6 sm:mt-10">
         <SectionTitle hint={`${achievements.filter((a) => a.unlocked).length}/${achievements.length} unlocked`}>Achievements</SectionTitle>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6 sm:gap-3">
           {achievements.map((a) => (
             <div
               key={a.label}
               className={[
-                "group flex flex-col items-center gap-2 rounded-3xl p-4 border transition",
+                "group flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 border transition",
                 a.unlocked
                   ? "bg-white/90 border-petal/60 shadow-[0_10px_24px_-12px_oklch(0.7_0.2_350/0.4)] hover:-translate-y-0.5"
                   : "bg-white/50 border-petal/30 opacity-60",
@@ -232,22 +232,22 @@ function MePage() {
             >
               <div
                 className={[
-                  "grid h-14 w-14 place-items-center rounded-full transition",
+                  "grid h-11 w-11 sm:h-14 sm:w-14 place-items-center rounded-full transition",
                   a.unlocked
                     ? "bg-gradient-to-br from-hotpink to-magenta text-white shadow-md shadow-hotpink/40 group-hover:scale-105"
                     : "bg-blush text-rose/50",
                 ].join(" ")}
               >
-                <a.Icon className="h-6 w-6" strokeWidth={1.6} />
+                <a.Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.6} />
               </div>
-              <span className="text-[11px] font-semibold text-rose text-center leading-tight">{a.label}</span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-rose text-center leading-tight">{a.label}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* SETTINGS */}
-      <section className="mt-10 mb-4">
+      <section className="mt-6 sm:mt-10 mb-4">
         <SectionTitle>Settings</SectionTitle>
         <div className="space-y-3">
           {settingsGroups.map((group, gi) => (
