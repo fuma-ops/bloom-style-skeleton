@@ -652,12 +652,19 @@ function IncomesTab({ incomes, setIncomes, currency }: {
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Income Sources 💰</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Wallet className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Income Sources</h2>
         <PrimaryBtn onClick={add}><Plus className="h-4 w-4" /> Add Income Source</PrimaryBtn>
       </div>
 
       {incomes.length === 0 ? (
-        <Card><EmptyState emoji="💸" text="Add your first income source to begin." /></Card>
+        <Card>
+          <EmptyState
+            Icon={Coins}
+            title="Let's add your first income source"
+            text="Tell Bloom what you earn so it can plan a soft, smart budget for you."
+            cta={{ label: "Add Income", onClick: add }}
+          />
+        </Card>
       ) : (
         <Card>
           <ul className="space-y-3">
@@ -734,7 +741,7 @@ function BudgetSetupTab(props: {
 
   return (
     <div className="space-y-5">
-      <h2 className="font-script text-4xl text-[#831843]">Set Up Your Expenses 📋</h2>
+      <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Receipt className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> Set Up Your Expenses</h2>
 
       <Card>
         <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-3">STEP 1 · CHOOSE CATEGORIES</h3>
@@ -783,7 +790,7 @@ function BudgetSetupTab(props: {
           </div>
         </div>
         {selectedCats.length === 0 ? (
-          <EmptyState emoji="🌷" text="Pick a few categories above to start." />
+          <EmptyState Icon={Sparkles} title="Pick a few categories above" text="Tap any category card to add it to your monthly budget." />
         ) : (
           <ul className="space-y-2">
             {selectedCats.map(k => {
@@ -826,10 +833,12 @@ function SmartCalcTab(props: {
   if (totalIncome <= 0) {
     return (
       <Card>
-        <EmptyState emoji="🌼" text="Add your income first so we can suggest amounts." />
-        <div className="text-center mt-3">
-          <PrimaryBtn onClick={() => setTab("Incomes")}>Go to Incomes</PrimaryBtn>
-        </div>
+        <EmptyState
+          Icon={Wallet}
+          title="Add your income first"
+          text="The Smart Calculator uses your monthly income to suggest amounts for each category."
+          cta={{ label: "Go to Incomes", onClick: () => setTab("Incomes") }}
+        />
       </Card>
     );
   }
@@ -868,7 +877,7 @@ function SmartCalcTab(props: {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-script text-4xl text-[#831843]">Smart Budget Calculator ✨</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Calculator className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> Smart Budget Calculator</h2>
         <p className="text-sm text-[#9D5C7E]">Based on your income, here's how we suggest you allocate.</p>
       </div>
 
@@ -959,7 +968,7 @@ function GoalsTab({ goals, setGoals, currency }: {
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Goals 🎯</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Flag className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Goals</h2>
         <PrimaryBtn onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" /> Add New Goal</PrimaryBtn>
       </div>
 
@@ -985,16 +994,23 @@ function GoalsTab({ goals, setGoals, currency }: {
       </Card>
 
       {goals.length === 0 ? (
-        <Card><EmptyState emoji="🎯" text="No goals yet — pick a preset or add your own." /></Card>
+        <Card>
+          <EmptyState
+            Icon={Flag}
+            title="Set your first savings goal"
+            text="Pick a preset above or open the form to dream up your own."
+            cta={{ label: "Add a Goal", onClick: () => setShowAdd(true) }}
+          />
+        </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {goals.map(g => {
             const pct = Math.min(100, g.target > 0 ? (g.saved / g.target) * 100 : 0);
             const remaining = Math.max(0, g.target - g.saved);
             const months = g.monthly > 0 ? Math.ceil(remaining / g.monthly) : null;
-            const status = pct >= 100 ? { l: "Achieved 💖", c: "bg-pink-100 text-hotpink" }
-              : g.saved > 0 ? { l: "On Track 💚", c: "bg-emerald-100 text-emerald-700" }
-              : { l: "Not Started ⚪", c: "bg-slate-100 text-slate-600" };
+            const status = pct >= 100 ? { l: "Achieved", c: "bg-pink-100 text-hotpink" }
+              : g.saved > 0 ? { l: "On Track", c: "bg-emerald-100 text-emerald-700" }
+              : { l: "Not Started", c: "bg-slate-100 text-slate-600" };
             return (
               <Card key={g.id}>
                 <div className="flex items-start justify-between gap-2">
@@ -1108,7 +1124,7 @@ function ReportsTab(props: {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Reports 📊</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><FileBarChart className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Reports</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => shiftMonth(-1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#FCE7F3] text-[#9D5C7E] hover:bg-pink-200 transition">
             <ChevronLeft className="h-4 w-4" />
@@ -1141,7 +1157,7 @@ function ReportsTab(props: {
           </div>
         </div>
         {filtered.length === 0 ? (
-          <EmptyState emoji="🧾" text="No transactions for this month." />
+          <EmptyState Icon={Receipt} title="No transactions yet" text="Head to the Dashboard to log your first expense for this month." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -1190,13 +1206,20 @@ function ReportsTab(props: {
             <PrimaryBtn onClick={addBill} className="sm:col-span-2">Add</PrimaryBtn>
           </div>
         )}
-        {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." /> : (
+        {bills.length === 0 ? (
+          <EmptyState
+            Icon={Calendar}
+            title="No upcoming bills"
+            text="Add a bill so Bloom can remind you before it's due."
+            cta={{ label: "Add a Bill", onClick: () => setBillOpen(true) }}
+          />
+        ) : (
           <ul className="space-y-2">
             {bills.map(b => {
               const d = daysUntil(b.due);
-              const status = b.paid ? { l: "Paid 💚", c: "bg-emerald-100 text-emerald-700" }
-                : d < 0 ? { l: "Overdue 🔴", c: "bg-red-100 text-red-700" }
-                : { l: "Upcoming 🟡", c: "bg-amber-100 text-amber-700" };
+              const status = b.paid ? { l: "Paid", c: "bg-emerald-100 text-emerald-700" }
+                : d < 0 ? { l: "Overdue", c: "bg-red-100 text-red-700" }
+                : { l: "Upcoming", c: "bg-amber-100 text-amber-700" };
               return (
                 <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-pink-50/40 px-3 py-2">
                   <div>
