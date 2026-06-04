@@ -423,8 +423,18 @@ function StatCards({ income, expenses, savings, balance, currency }: {
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
           <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone} text-lg`}>{it.emoji}</div>
-          <div className="mt-3 text-xl sm:text-2xl font-bold text-[#831843] tracking-tight font-script leading-none">{fmt(it.v, currency)}</div>
-          <div className="mt-1 text-[11px] font-bold tracking-widest text-[#9D5C7E]">{it.label.toUpperCase()}</div>
+          <div
+            className="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
+            style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
+          >
+            {fmt(it.v, currency)}
+          </div>
+          <div
+            className="mt-1 text-[11px] font-extrabold tracking-widest text-[#BE185D]"
+            style={{ textShadow: "0 1px 2px rgba(255,255,255,0.8)" }}
+          >
+            {it.label.toUpperCase()}
+          </div>
         </Card>
       ))}
     </div>
