@@ -290,8 +290,18 @@ export function BudgetPlanner() {
   );
 
   return (
-    <div className="relative min-h-screen" style={{ background: "#FFF0F6" }}>
-      <KawaiiBackground count={12} />
+    <div
+      className="relative min-h-screen"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,240,246,0.55), rgba(255,240,246,0.75)), url('/images/budget-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <KawaiiBackground count={10} />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Title + currency */}
@@ -413,8 +423,18 @@ function StatCards({ income, expenses, savings, balance, currency }: {
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
           <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone} text-lg`}>{it.emoji}</div>
-          <div className="mt-3 text-xl sm:text-2xl font-bold text-[#831843] tracking-tight font-script leading-none">{fmt(it.v, currency)}</div>
-          <div className="mt-1 text-[11px] font-bold tracking-widest text-[#9D5C7E]">{it.label.toUpperCase()}</div>
+          <div
+            className="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
+            style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
+          >
+            {fmt(it.v, currency)}
+          </div>
+          <div
+            className="mt-1 text-[11px] font-extrabold tracking-widest text-[#BE185D]"
+            style={{ textShadow: "0 1px 2px rgba(255,255,255,0.8)" }}
+          >
+            {it.label.toUpperCase()}
+          </div>
         </Card>
       ))}
     </div>
