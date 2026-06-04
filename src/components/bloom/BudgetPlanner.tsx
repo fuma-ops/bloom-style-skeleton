@@ -515,7 +515,7 @@ function DashboardTab(props: {
             <PiggyBank className="h-5 w-5 text-[#EC4899]" />
           </div>
           {donutData.length === 0 ? (
-            <EmptyState emoji="🍩" text="No expenses yet — log one below to see the breakdown." />
+            <EmptyState Icon={PiggyBank} text="No expenses yet — log one below to see the breakdown." />
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Donut data={donutData} total={totalExpenses} currency={currency} />
@@ -550,7 +550,7 @@ function DashboardTab(props: {
             <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
             <button onClick={() => setTab("Reports")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
           </div>
-          {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." compact /> : (
+          {bills.length === 0 ? <EmptyState Icon={Calendar} text="No bills yet." compact /> : (
             <ul className="space-y-2">
               {bills.slice(0, 3).map(b => {
                 const d = daysUntil(b.due);
@@ -576,7 +576,7 @@ function DashboardTab(props: {
             <h3 className="font-script text-2xl text-[#831843]">Top Goals</h3>
             <button onClick={() => setTab("Savings Goals")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
           </div>
-          {goals.length === 0 ? <EmptyState emoji="🎯" text="No goals yet." compact /> : (
+          {goals.length === 0 ? <EmptyState Icon={Flag} text="No goals yet." compact /> : (
             <ul className="space-y-3">
               {goals.slice(0, 3).map(g => {
                 const p = Math.min(100, (g.saved / g.target) * 100);
