@@ -6,7 +6,8 @@ import {
   Flame, Smartphone, Pill, Sparkle, Film, Shirt, Plane, Heart, UtensilsCrossed,
   Baby, PawPrint, Package, BookHeart, Target, Briefcase, Banknote,
   Building2, LineChart as LineIcon, Calendar, Download, Filter, ArrowUpRight,
-  ArrowDownRight, type LucideIcon,
+  ArrowDownRight, ArrowRight, CheckCircle2, CircleDot, Coins, Receipt,
+  Flag, FileBarChart, Calculator, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
 import { BudgetBubbles } from "./BudgetBubbles";
@@ -60,9 +61,9 @@ const FREQUENCIES = ["Monthly","Weekly","Bi-weekly","One-time"] as const;
 type Frequency = typeof FREQUENCIES[number];
 
 const MOODS = [
-  { key: "planned",   label: "Planned",   emoji: "🎯", tone: "bg-mint/30 text-emerald-700 border-emerald-200" },
-  { key: "necessary", label: "Necessary", emoji: "✅", tone: "bg-pink-100 text-hotpink border-pink-200" },
-  { key: "impulsive", label: "Impulsive", emoji: "💸", tone: "bg-rose-100 text-magenta border-rose-200" },
+  { key: "planned",   label: "Planned",   Icon: Target,       tone: "bg-mint/30 text-emerald-700 border-emerald-200" },
+  { key: "necessary", label: "Necessary", Icon: CheckCircle2, tone: "bg-pink-100 text-hotpink border-pink-200" },
+  { key: "impulsive", label: "Impulsive", Icon: Zap,          tone: "bg-rose-100 text-magenta border-rose-200" },
 ] as const;
 type MoodKey = typeof MOODS[number]["key"];
 
@@ -305,7 +306,7 @@ export function BudgetPlanner() {
         {/* Title + currency */}
         <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
           <div>
-            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-sm">Budget ✿</h1>
+            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-sm">Budget</h1>
             <p className="text-sm text-[#9D5C7E] mt-1">Soft, smart money planning — your way.</p>
           </div>
           <div className="flex items-center gap-2">
