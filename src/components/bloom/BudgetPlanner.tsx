@@ -7,7 +7,7 @@ import {
   Baby, PawPrint, Package, BookHeart, Target, Briefcase, Banknote,
   Building2, LineChart as LineIcon, Calendar, Download, Filter, ArrowUpRight,
   ArrowDownRight, ArrowRight, CheckCircle2, CircleDot, Coins, Receipt,
-  Flag, FileBarChart, Calculator, type LucideIcon,
+  Flag, FileBarChart, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
 import { BudgetBubbles } from "./BudgetBubbles";
@@ -26,7 +26,7 @@ const CURRENCIES = {
 type CurrencyKey = keyof typeof CURRENCIES;
 
 const TABS = [
-  "Dashboard", "Incomes", "Budget Setup", "Smart Calculator", "Savings Goals", "Reports",
+  "Dashboard", "Incomes", "Budget Setup", "Savings Goals", "Reports",
 ] as const;
 type TabKey = typeof TABS[number];
 
@@ -274,7 +274,6 @@ export function BudgetPlanner() {
   const [txns, setTxns] = useLocal<Txn[]>("bp:txns", []);
   const [goals, setGoals] = useLocal<Goal[]>("bp:goals", []);
   const [bills, setBills] = useLocal<Bill[]>("bp:bills", []);
-  const [calcDone, setCalcDone] = useLocal<boolean>("bp:calcDone", false);
 
   const allCats: Cat[] = useMemo(() => [
     ...DEFAULT_CATS,
@@ -360,11 +359,10 @@ export function BudgetPlanner() {
               bills={bills}
               setTab={setTab}
               incomes={incomes}
-              calcDone={calcDone}
             />
           )}
           {tab === "Incomes" && (
-            <IncomesTab incomes={incomes} setIncomes={setIncomes} currency={currency} />
+            <IncomesTab incomes={incomes} setIncomes={setIncomes} currency={currency} setTab={setTab} />
           )}
           {tab === "Budget Setup" && (
             <BudgetSetupTab
@@ -373,22 +371,13 @@ export function BudgetPlanner() {
               budget={budget} setBudget={setBudget}
               customCats={customCats} setCustomCats={setCustomCats}
               currency={currency}
+              totalIncome={totalIncome}
+              setTab={setTab}
               suggestion={(catKey) => suggestionFor(catKey, totalIncome, selectedCats, allCats)}
             />
           )}
-          {tab === "Smart Calculator" && (
-            <SmartCalcTab
-              totalIncome={totalIncome}
-              selectedCats={selectedCats}
-              allCats={allCats}
-              budget={budget} setBudget={setBudget}
-              currency={currency}
-              setTab={setTab}
-              onApplied={() => setCalcDone(true)}
-            />
-          )}
           {tab === "Savings Goals" && (
-            <GoalsTab goals={goals} setGoals={setGoals} currency={currency} />
+            <GoalsTab goals={goals} setGoals={setGoals} currency={currency} setTab={setTab} />
           )}
           {tab === "Reports" && (
             <ReportsTab
@@ -422,7 +411,7 @@ function StatCards({ income, expenses, savings, balance, currency }: {
     { label: "Total Balance",  v: balance,  Icon: Gem,             tone: "bg-violet-100 text-violet-700" },
   ];
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
           <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone}`}>
@@ -455,11 +444,11 @@ function DashboardTab(props: {
   txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
   budget: Budget; selectedCats: string[]; allCats: Cat[];
   goals: Goal[]; bills: Bill[]; setTab: (t: TabKey) => void;
-  incomes: Income[]; calcDone: boolean;
+  incomes: Income[];
 }) {
   const { currency, totalIncome, totalExpenses, totalSavings, totalBalance,
     txns, setTxns, selectedCats, allCats, goals, bills, setTab,
-    incomes, calcDone, budget } = props;
+    incomes, budget } = props;
 
   // Donut data: expense totals by category
   const donutData = useMemo(() => {
@@ -512,7 +501,6 @@ function DashboardTab(props: {
   const steps = [
     { key: "income", label: "Add your income",            done: incomes.length > 0,                                                            tab: "Incomes"           as TabKey, Icon: Wallet },
     { key: "setup",  label: "Set up your budget",         done: selectedCats.length > 0 && Object.values(budget).some(v => v > 0),             tab: "Budget Setup"      as TabKey, Icon: Receipt },
-    { key: "calc",   label: "Run the Smart Calculator",   done: calcDone,                                                                       tab: "Smart Calculator"  as TabKey, Icon: Calculator },
     { key: "goals",  label: "Add a savings goal",         done: goals.length > 0,                                                               tab: "Savings Goals"     as TabKey, Icon: Flag },
     { key: "track",  label: "Track your spending",        done: txns.length > 0,                                                                tab: "Reports"           as TabKey, Icon: FileBarChart },
   ];
@@ -662,7 +650,7 @@ function DashboardTab(props: {
       </div>
 
       {/* Bills + Goals preview + Health */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
@@ -753,8 +741,9 @@ function DashboardTab(props: {
 /* ============================================================
    INCOMES TAB
 ============================================================ */
-function IncomesTab({ incomes, setIncomes, currency }: {
-  incomes: Income[]; setIncomes: (v: Income[] | ((p: Income[]) => Income[])) => void; currency: CurrencyKey;
+function IncomesTab({ incomes, setIncomes, currency, setTab }: {
+  incomes: Income[]; setIncomes: (v: Income[] | ((p: Income[]) => Income[])) => void;
+  currency: CurrencyKey; setTab: (t: TabKey) => void;
 }) {
   const total = incomes.reduce((s, i) => s + toMonthly(i), 0);
   function add() {
@@ -811,6 +800,18 @@ function IncomesTab({ incomes, setIncomes, currency }: {
           </div>
         </Card>
       )}
+
+      {total > 0 && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">NICE WORK</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Income added — let's plan your budget.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Budget Setup")} className="shadow-lg shadow-pink-400/40">
+            Next: Budget Setup <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
+        </Card>
+      )}
     </div>
   );
 }
@@ -832,9 +833,11 @@ function BudgetSetupTab(props: {
   budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
   customCats: CustomCat[]; setCustomCats: (v: CustomCat[] | ((p: CustomCat[]) => CustomCat[])) => void;
   currency: CurrencyKey;
+  totalIncome: number;
+  setTab: (t: TabKey) => void;
   suggestion: (catKey: string) => number;
 }) {
-  const { allCats, selectedCats, setSelectedCats, budget, setBudget, customCats, setCustomCats, currency, suggestion } = props;
+  const { allCats, selectedCats, setSelectedCats, budget, setBudget, customCats, setCustomCats, currency, totalIncome, setTab, suggestion } = props;
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✨");
@@ -856,6 +859,18 @@ function BudgetSetupTab(props: {
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
   }
+
+  function applySuggestions() {
+    setBudget(prev => {
+      const next = { ...prev };
+      selectedCats.forEach(k => { const s = suggestion(k); if (s > 0) next[k] = s; });
+      return next;
+    });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1600);
+  }
+
+  const hasAmounts = selectedCats.length > 0 && Object.values(budget).some(v => v > 0);
 
   return (
     <div className="space-y-5">
@@ -934,140 +949,41 @@ function BudgetSetupTab(props: {
           </ul>
         )}
       </Card>
+
+      {hasAmounts && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">BUDGET SET</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Now set a sweet little savings goal.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Savings Goals")} className="shadow-lg shadow-pink-400/40">
+            Next: Savings Goals <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
+        </Card>
+      )}
+
+      {totalIncome > 0 && selectedCats.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="font-script text-2xl text-[#831843]">Smart Suggestion · 50/30/20</h3>
+              <p className="text-xs text-[#9D5C7E]">Let Bloom auto-fill your amounts based on your income.</p>
+            </div>
+            <GhostBtn onClick={applySuggestions}><Sparkles className="h-4 w-4" /> Apply Suggested Amounts</GhostBtn>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
 
-/* ============================================================
-   SMART CALCULATOR
-============================================================ */
-function SmartCalcTab(props: {
-  totalIncome: number; selectedCats: string[]; allCats: Cat[];
-  budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
-  currency: CurrencyKey; setTab: (t: TabKey) => void;
-  onApplied: () => void;
-}) {
-  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab, onApplied } = props;
-
-  if (totalIncome <= 0) {
-    return (
-      <Card>
-        <EmptyState
-          Icon={Wallet}
-          title="Add your income first"
-          text="The Smart Calculator uses your monthly income to suggest amounts for each category."
-          cta={{ label: "Go to Incomes", onClick: () => setTab("Incomes") }}
-        />
-      </Card>
-    );
-  }
-
-  const needs = totalIncome * 0.5, wants = totalIncome * 0.3, savings = totalIncome * 0.2;
-  const sel = selectedCats.map(k => allCats.find(c => c.key === k)).filter(Boolean) as Cat[];
-  const needCount = sel.filter(c => c.group === "need").length || 1;
-  const wantCount = sel.filter(c => c.group === "want").length || 1;
-
-  const items = sel.map(c => {
-    const sugg = c.group === "need" ? needs / needCount : c.group === "want" ? wants / wantCount : savings;
-    const set = budget[c.key] || 0;
-    const over = set - sugg;
-    let dot = "bg-emerald-400", tip = "Right on track 🌿";
-    if (over > sugg * 0.1) { dot = "bg-red-400"; tip = "Over budget — try to trim a bit"; }
-    else if (over > 0) { dot = "bg-amber-400"; tip = "Slightly over — almost perfect"; }
-    return { c, sugg, set, dot, tip };
-  });
-
-  function applyAll() {
-    setBudget(prev => {
-      const next = { ...prev };
-      items.forEach(({ c, sugg }) => { next[c.key] = Math.round(sugg); });
-      return next;
-    });
-    onApplied();
-  }
-
-  const summary = [
-    { label: "Needs",    v: needs,   color: "#EC4899" },
-    { label: "Wants",    v: wants,   color: "#F472B6" },
-    { label: "Savings",  v: savings, color: "#C084FC" },
-  ];
-  const totalBudget = items.reduce((s, i) => s + i.set, 0);
-  const remaining = totalIncome - totalBudget;
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Calculator className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> Smart Budget Calculator</h2>
-        <p className="text-sm text-[#9D5C7E]">Based on your income, here's how we suggest you allocate.</p>
-      </div>
-
-      <Card>
-        <ul className="space-y-2">
-          {items.map(({ c, sugg, set, dot, tip }) => (
-            <li key={c.key} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
-              <div className="sm:col-span-5 flex items-center gap-2">
-                <c.Icon className="h-5 w-5 text-[#EC4899]" strokeWidth={1.6} />
-                <span className="font-semibold text-[#831843]">{c.label}</span>
-              </div>
-              <div className="sm:col-span-3">
-                <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2 py-0.5 text-xs font-semibold text-hotpink">
-                  <Sparkles className="h-3 w-3" /> {fmt(sugg, currency)}
-                </span>
-              </div>
-              <div className="sm:col-span-2 text-sm text-[#831843]">Your: <span className="font-semibold">{fmt(set, currency)}</span></div>
-              <div className="sm:col-span-2 flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
-                <span className="text-xs text-[#9D5C7E]">{tip}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <h3 className="font-script text-2xl text-[#831843] mb-2">Allocation Summary</h3>
-          <div className="space-y-2">
-            {summary.map(s => (
-              <div key={s.label}>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold text-[#831843]">{s.label}</span>
-                  <span className="text-[#9D5C7E]">{fmt(s.v, currency)} · {Math.round((s.v / totalIncome) * 100)}%</span>
-                </div>
-                <div className="mt-1 h-2 rounded-full bg-pink-100 overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${(s.v / totalIncome) * 100}%`, background: s.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={`mt-4 rounded-xl px-3 py-2 text-sm font-semibold ${
-            remaining >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-          }`}>
-            Remaining: {fmt(remaining, currency)}
-          </div>
-          <div className="mt-4">
-            <PrimaryBtn onClick={applyAll}><Sparkles className="h-4 w-4" /> Apply suggested amounts</PrimaryBtn>
-          </div>
-        </Card>
-
-        <Card className="flex flex-col items-center">
-          <h3 className="font-script text-2xl text-[#831843] mb-2">50 / 30 / 20</h3>
-          <Donut
-            data={summary.map(s => ({ label: s.label, value: s.v, color: s.color }))}
-            total={totalIncome} currency={currency}
-          />
-        </Card>
-      </div>
-    </div>
-  );
-}
 
 /* ============================================================
    SAVINGS GOALS TAB
 ============================================================ */
-function GoalsTab({ goals, setGoals, currency }: {
-  goals: Goal[]; setGoals: (v: Goal[] | ((p: Goal[]) => Goal[])) => void; currency: CurrencyKey;
+function GoalsTab({ goals, setGoals, currency, setTab }: {
+  goals: Goal[]; setGoals: (v: Goal[] | ((p: Goal[]) => Goal[])) => void;
+  currency: CurrencyKey; setTab: (t: TabKey) => void;
 }) {
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
@@ -1169,6 +1085,18 @@ function GoalsTab({ goals, setGoals, currency }: {
             );
           })}
         </div>
+      )}
+
+      {goals.length > 0 && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">DREAM LOCKED IN</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Final step — track your spending.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Reports")} className="shadow-lg shadow-pink-400/40">
+            Next: Reports <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
+        </Card>
       )}
     </div>
   );
