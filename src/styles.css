@@ -80,9 +80,9 @@
   --cream: oklch(0.985 0.012 350);
   --blush: oklch(0.965 0.025 350);
   --petal: oklch(0.92 0.06 350);
-  --rose: oklch(0.82 0.13 350);
-  --hotpink: oklch(0.7 0.22 0);
-  --magenta: oklch(0.6 0.25 0);
+  --rose: oklch(0.5 0.18 0);
+  --hotpink: oklch(0.62 0.24 0);
+  --magenta: oklch(0.5 0.26 0);
 
   --background: oklch(0.98 0.015 350);
   --foreground: oklch(0.45 0.18 0);
