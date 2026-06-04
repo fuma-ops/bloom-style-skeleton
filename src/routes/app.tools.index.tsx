@@ -194,7 +194,7 @@ function ContinueStrip({ tool, onGo }: { tool: Tool; onGo: () => void }) {
   );
 }
 
-function ClayToolCard({ tool, index, onGo }: { tool: Tool; index: number; onGo: () => void }) {
+function ClayToolCard({ tool, index, onGo, pinned, onTogglePin }: { tool: Tool; index: number; onGo: () => void; pinned: boolean; onTogglePin: () => void }) {
   const Icon = tool.icon;
   const [squish, setSquish] = useState(false);
 
@@ -216,11 +216,35 @@ function ClayToolCard({ tool, index, onGo }: { tool: Tool; index: number; onGo: 
           <span className="clay-icon grid h-20 w-20 sm:h-24 sm:w-24 place-items-center rounded-[1.75rem] clay-blob text-white">
             <Icon className="h-9 w-9 sm:h-10 sm:w-10 drop-shadow-[0_2px_3px_oklch(0.4_0.22_350/0.4)]" strokeWidth={1.6} />
           </span>
-          <span className="opacity-0 group-hover:opacity-100 transition inline-flex h-9 w-9 items-center justify-center rounded-full bg-hotpink text-white shadow-md shadow-hotpink/40">
-            <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(); }}
+              aria-label={pinned ? "Unpin tool" : "Pin tool"}
+              title={pinned ? "Unpin" : "Pin to top"}
+              className={[
+                "inline-flex h-9 w-9 items-center justify-center rounded-full border transition",
+                pinned
+                  ? "bg-hotpink text-white border-transparent shadow-md shadow-hotpink/40"
+                  : "bg-white/80 text-hotpink border-petal/60 hover:bg-white opacity-70 group-hover:opacity-100",
+              ].join(" ")}
+            >
+              {pinned
+                ? <Pin className="h-4 w-4" strokeWidth={2} fill="currentColor" />
+                : <PinOff className="h-4 w-4" strokeWidth={1.8} />}
+            </button>
+            <span className="opacity-0 group-hover:opacity-100 transition inline-flex h-9 w-9 items-center justify-center rounded-full bg-hotpink text-white shadow-md shadow-hotpink/40">
+              <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+            </span>
+          </div>
         </div>
-        <h3 className="mt-5 font-script text-3xl sm:text-4xl text-hotpink leading-none">{tool.label}</h3>
+        <div className="mt-5 flex items-center gap-2">
+          <h3 className="font-script text-3xl sm:text-4xl text-hotpink leading-none">{tool.label}</h3>
+          {pinned && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-hotpink/10 text-hotpink text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-hotpink/20">
+              <Pin className="h-2.5 w-2.5" strokeWidth={2} fill="currentColor" /> Pinned
+            </span>
+          )}
+        </div>
         <p className="mt-1.5 text-sm text-rose/80 leading-relaxed">{tool.blurb}</p>
       </div>
     </Link>
