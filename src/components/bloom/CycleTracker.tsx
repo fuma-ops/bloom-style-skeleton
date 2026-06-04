@@ -3,7 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Droplet,
-  Sun,
+  Sprout,
   Flower2,
   Moon,
   Pill,
@@ -11,8 +11,17 @@ import {
   Undo2,
   Sparkles,
   Heart,
+  Star,
+  Leaf,
+  Smile,
+  Zap,
+  HeartCrack,
+  CloudRain,
+  Flame,
+  Cloud,
 } from "lucide-react";
 import { PeriodSetup, type CycleSettings } from "./PeriodSetup";
+import { BloomBubbles } from "./BloomBubbles";
 
 /* ---------- Default cycle settings (easy to edit) ---------- */
 const DEFAULT_SETTINGS: CycleSettings = {
@@ -42,21 +51,21 @@ function phaseForDay(date: Date, s: CycleSettings): Phase {
 
 const PHASE_META: Record<Exclude<Phase, null>, { label: string; color: string; ring: string; Icon: any }> = {
   period:     { label: "PERIOD",     color: "bg-hotpink text-white",                ring: "ring-hotpink/40",  Icon: Droplet },
-  follicular: { label: "FOLLICULAR", color: "bg-amber-100 text-amber-600",          ring: "ring-amber-200",   Icon: Sun },
+  follicular: { label: "FOLLICULAR", color: "bg-amber-100 text-amber-700",          ring: "ring-amber-200",   Icon: Sprout },
   fertile:    { label: "FERTILE",    color: "bg-pink-100 text-hotpink",             ring: "ring-pink-200",    Icon: Flower2 },
-  ovulation:  { label: "OVULATION",  color: "bg-rose-200 text-magenta",             ring: "ring-rose-400",    Icon: Sparkles },
+  ovulation:  { label: "OVULATION",  color: "bg-rose-200 text-magenta",             ring: "ring-rose-400",    Icon: Star },
   luteal:     { label: "LUTEAL",     color: "bg-violet-100 text-violet-500",        ring: "ring-violet-200",  Icon: Moon },
 };
 
 const MOODS = [
-  { key: "calm",      label: "Calm",      emoji: "😌" },
-  { key: "happy",     label: "Happy",     emoji: "😊" },
-  { key: "energetic", label: "Energetic", emoji: "✨" },
-  { key: "sensitive", label: "Sensitive", emoji: "🥺" },
-  { key: "sad",       label: "Sad",       emoji: "😢" },
-  { key: "tired",     label: "Tired",     emoji: "😴" },
-  { key: "cramps",    label: "Cramps",    emoji: "🤕" },
-  { key: "bloated",   label: "Bloated",   emoji: "🫧" },
+  { key: "calm",      label: "Calm",      Icon: Leaf },
+  { key: "happy",     label: "Happy",     Icon: Smile },
+  { key: "energetic", label: "Energetic", Icon: Zap },
+  { key: "sensitive", label: "Sensitive", Icon: HeartCrack },
+  { key: "sad",       label: "Sad",       Icon: CloudRain },
+  { key: "tired",     label: "Tired",     Icon: Moon },
+  { key: "cramps",    label: "Cramps",    Icon: Flame },
+  { key: "bloated",   label: "Bloated",   Icon: Cloud },
 ] as const;
 
 const WEEKDAYS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
@@ -113,26 +122,12 @@ export function CycleTracker() {
 
   return (
     <div className="relative">
-      {/* dynamic clean background overlay (within the app shell area) */}
+      {/* dreamy 3D pink bubble background */}
+      <BloomBubbles count={22} />
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-hotpink/15 blur-3xl animate-bloom-pulse" />
-        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-rose/25 blur-3xl animate-bloom-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-petal/40 blur-3xl animate-bloom-pulse" style={{ animationDelay: "3s" }} />
-        {/* drifting petals */}
-        {[...Array(6)].map((_, i) => (
-          <span
-            key={i}
-            className="absolute text-pink-300/60 animate-bloom-float"
-            style={{
-              left: `${10 + i * 14}%`,
-              top: `${(i * 17) % 80 + 5}%`,
-              animationDelay: `${i * 0.7}s`,
-              fontSize: `${14 + (i % 3) * 6}px`,
-            }}
-          >
-            ✿
-          </span>
-        ))}
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-hotpink/10 blur-3xl animate-bloom-pulse" />
+        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-rose/15 blur-3xl animate-bloom-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-petal/30 blur-3xl animate-bloom-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -184,23 +179,25 @@ export function CycleTracker() {
                   key={i}
                   onClick={() => setSelected(d)}
                   className={[
-                    "relative aspect-square rounded-2xl flex flex-col items-center justify-center text-xs font-semibold transition-all",
-                    "hover:scale-105",
-                    isSelected ? "scale-105 ring-2 ring-hotpink shadow-md" : "",
+                    "relative aspect-square rounded-2xl flex flex-col items-center justify-center text-xs font-semibold transition-all duration-200",
+                    "hover:scale-110 active:scale-95",
+                    isSelected ? "scale-110 ring-2 ring-hotpink shadow-md animate-bloom-bounce" : "",
                     isFuture && phase === "period"
                       ? "border-2 border-dashed border-hotpink/70 bg-pink-50 text-hotpink"
                       : isFuture
                         ? "border border-dashed border-rose/40 text-rose bg-white/60"
                         : meta?.color ?? "bg-white text-rose",
-                    isPeak ? "ring-2 ring-rose-400 animate-bloom-pulse" : "",
+                    isPeak ? "animate-bloom-peak" : "",
                     emphasizeFertile ? "ring-2 ring-magenta/60" : "",
                     isToday ? "outline outline-2 outline-offset-2 outline-hotpink/60" : "",
                   ].join(" ")}
                 >
                   <span className="leading-none">{d.getDate()}</span>
-                  {Icon && !isFuture && <Icon className="h-3 w-3 mt-0.5 opacity-90" />}
+                  {Icon && <Icon className={`h-3 w-3 mt-0.5 ${isFuture ? "opacity-50" : "opacity-95"}`} />}
                   {isPeak && (
-                    <span className="absolute -top-2 rounded-full bg-magenta px-1.5 py-0.5 text-[8px] font-bold text-white shadow">PEAK</span>
+                    <span className="absolute -top-2 inline-flex items-center gap-0.5 rounded-full bg-magenta px-1.5 py-0.5 text-[8px] font-bold text-white shadow">
+                      <Sparkles className="h-2 w-2" /> PEAK
+                    </span>
                   )}
                 </button>
               );
@@ -222,7 +219,12 @@ export function CycleTracker() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1">
           {/* Next period */}
           <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "60ms" }}>
-            <p className="text-[10px] font-bold tracking-widest text-rose">NEXT PERIOD</p>
+            <div className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-hotpink/10 text-hotpink animate-bloom-pulse">
+                <Droplet className="h-4 w-4 fill-hotpink/30" />
+              </span>
+              <p className="text-[10px] font-bold tracking-widest text-rose">NEXT PERIOD</p>
+            </div>
             <p className="mt-1 font-script text-4xl text-hotpink">
               {nextPeriod.toLocaleDateString("en", { weekday: "short" })}
             </p>
@@ -231,7 +233,13 @@ export function CycleTracker() {
 
           {/* Ovulation */}
           <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "120ms" }}>
-            <p className="text-[10px] font-bold tracking-widest text-rose">OVULATION</p>
+            <div className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-magenta/10 text-magenta">
+                <Flower2 className="h-4 w-4" />
+              </span>
+              <p className="text-[10px] font-bold tracking-widest text-rose">OVULATION</p>
+              <Sparkles className="h-3 w-3 text-magenta animate-bloom-sparkle" />
+            </div>
             <p className="mt-1 font-script text-4xl text-hotpink">{ovulationDate.toLocaleDateString("en", { weekday: "short" })}</p>
             <p className="text-sm text-rose">
               Fertile window · {MONTHS[fertileStart.getMonth()].slice(0,3)} {fertileStart.getDate()}–{fertileEnd.getDate()}
@@ -282,19 +290,25 @@ export function CycleTracker() {
             <div className="mt-3 grid grid-cols-4 gap-2">
               {MOODS.map((m) => {
                 const active = mood === m.key;
+                const MoodIcon = m.Icon;
                 return (
                   <button
                     key={m.key}
                     onClick={() => setMood(m.key)}
                     className={[
-                      "group flex flex-col items-center gap-1 rounded-2xl p-2 transition-all",
-                      active ? "bg-hotpink/10 ring-2 ring-hotpink scale-105" : "bg-blush/60 hover:bg-petal/70",
+                      "group flex flex-col items-center gap-1 rounded-2xl p-2 transition-all duration-200 active:scale-95",
+                      active ? "bg-hotpink/10 ring-2 ring-hotpink animate-bloom-bounce" : "bg-blush/60 hover:bg-petal/70 hover:scale-105",
                     ].join(" ")}
                   >
-                    <span className={`text-2xl transition-transform ${active ? "scale-125" : "group-hover:scale-110 group-active:scale-95"}`}>
-                      {m.emoji}
+                    <span
+                      className={[
+                        "grid h-9 w-9 place-items-center rounded-full transition-transform",
+                        active ? "bg-hotpink text-white scale-110" : "bg-white text-hotpink ring-1 ring-petal group-hover:scale-110",
+                      ].join(" ")}
+                    >
+                      <MoodIcon className="h-4 w-4" />
                     </span>
-                    <span className="text-[10px] font-semibold text-rose">{m.label}</span>
+                    <span className={`text-[10px] font-semibold ${active ? "text-hotpink" : "text-rose"}`}>{m.label}</span>
                   </button>
                 );
               })}
@@ -308,17 +322,22 @@ export function CycleTracker() {
         <h3 className="font-script text-4xl text-hotpink mb-3">For You ✿</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { t: "Soft yoga for cramps", d: "10-min gentle flow to ease your body." },
-            { t: "Iron-rich snacks", d: "Cute recipes for your period week." },
-            { t: "Why you feel extra today", d: "A gentle hormone explainer." },
+            { t: "Soft yoga for cramps", d: "10-min gentle flow to ease your body.", Icon: Flower2 },
+            { t: "Iron-rich snacks",     d: "Cute recipes for your period week.",   Icon: Leaf },
+            { t: "Why you feel extra today", d: "A gentle hormone explainer.",      Icon: Sparkles },
           ].map((p, i) => (
             <div
               key={p.t}
-              className="rounded-[1.75rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur transition hover:-translate-y-1 animate-fade-in"
+              className="rounded-[1.75rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-hotpink/20 animate-fade-in"
               style={{ animationDelay: `${i * 80}ms` }}
             >
-              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-blush px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-hotpink">
-                <Sparkles className="h-3 w-3" /> FOR YOU
+              <div className="mb-3 flex items-center gap-2">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-hotpink/10 text-hotpink">
+                  <p.Icon className="h-5 w-5" />
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blush px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-hotpink">
+                  <Sparkles className="h-3 w-3" /> FOR YOU
+                </span>
               </div>
               <p className="font-script text-2xl text-hotpink">{p.t}</p>
               <p className="text-sm text-rose mt-1">{p.d}</p>

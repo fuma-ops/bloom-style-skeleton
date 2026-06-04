@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X, Flower2, Bell } from "lucide-react";
+import { CuteTimePicker } from "./CutePicker";
 
 export type TrackerMode = "protection" | "conception";
 export type ContraceptiveMethod = "pill" | "patch" | "ring";
@@ -173,12 +174,7 @@ export function PeriodSetup({ open, onClose, initial, onSave }: Props) {
         <Section label="Reminder Hour">
           <div className="flex items-center justify-between rounded-2xl bg-blush px-4 py-3">
             <span className="inline-flex items-center gap-2 text-rose"><Bell className="h-4 w-4" /> Daily hour to notify you</span>
-            <input
-              type="time"
-              value={draft.reminderHour}
-              onChange={(e) => update("reminderHour", e.target.value)}
-              className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-hotpink ring-1 ring-petal"
-            />
+            <CuteTimePicker value={draft.reminderHour} onChange={(v) => update("reminderHour", v)} />
           </div>
         </Section>
 
