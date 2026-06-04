@@ -312,7 +312,7 @@ export function BudgetPlanner() {
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2 backdrop-blur bg-[#FFF0F6]/80">
+        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2 backdrop-blur bg-transparent">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {TABS.map((t) => {
               const active = tab === t;
