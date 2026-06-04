@@ -266,7 +266,7 @@ function HealthRing({ pct, label, tone }: { pct: number; label: string; tone: st
 ============================================================ */
 export function BudgetPlanner() {
   const [tab, setTab] = useLocal<TabKey>("bp:tab", "Dashboard");
-  const [currency, setCurrency] = useLocal<CurrencyKey>("bp:currency", "MAD");
+  const [currency, setCurrency] = useLocal<CurrencyKey>("bp:currency", "USD");
   const [incomes, setIncomes] = useLocal<Income[]>("bp:incomes", []);
   const [customCats, setCustomCats] = useLocal<CustomCat[]>("bp:customCats", []);
   const [selectedCats, setSelectedCats] = useLocal<string[]>("bp:selectedCats", ["rent","food","transp","elec"]);
@@ -308,14 +308,6 @@ export function BudgetPlanner() {
           <div>
             <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-none">Budget</h1>
             <p className="text-sm text-[#9D5C7E] mt-1">Soft, smart money planning — your way.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold tracking-widest text-[#9D5C7E]">CURRENCY</span>
-            <Select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyKey)}>
-              {Object.entries(CURRENCIES).map(([k, v]) => (
-                <option key={k} value={k}>{k} {v.symbol}</option>
-              ))}
-            </Select>
           </div>
         </div>
 
