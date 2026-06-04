@@ -1256,11 +1256,39 @@ function ReportsTab(props: {
 /* ============================================================
    EMPTY + UTIL
 ============================================================ */
-function EmptyState({ emoji, text, compact }: { emoji: string; text: string; compact?: boolean }) {
+function EmptyState({
+  Icon = Sparkles,
+  title,
+  text,
+  cta,
+  compact,
+}: {
+  Icon?: LucideIcon;
+  title?: string;
+  text: string;
+  cta?: { label: string; onClick: () => void };
+  compact?: boolean;
+}) {
   return (
     <div className={`text-center ${compact ? "py-4" : "py-8"}`}>
-      <div className={`${compact ? "text-3xl" : "text-5xl"} mb-2`}>{emoji}</div>
-      <p className="text-sm text-[#9D5C7E]">{text}</p>
+      <div
+        className={`mx-auto mb-3 grid place-items-center rounded-full bg-pink-100 text-[#EC4899] ${
+          compact ? "h-10 w-10" : "h-14 w-14"
+        }`}
+      >
+        <Icon className={compact ? "h-5 w-5" : "h-7 w-7"} strokeWidth={1.6} />
+      </div>
+      {title && (
+        <p className="font-script text-2xl text-[#831843] leading-tight">{title}</p>
+      )}
+      <p className="mt-1 text-sm text-[#9D5C7E] max-w-md mx-auto">{text}</p>
+      {cta && (
+        <div className="mt-3">
+          <PrimaryBtn onClick={cta.onClick}>
+            <Plus className="h-4 w-4" /> {cta.label}
+          </PrimaryBtn>
+        </div>
+      )}
     </div>
   );
 }
