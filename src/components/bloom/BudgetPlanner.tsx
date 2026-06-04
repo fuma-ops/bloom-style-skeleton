@@ -306,7 +306,7 @@ export function BudgetPlanner() {
         {/* Title + currency */}
         <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
           <div>
-            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-sm">Budget</h1>
+            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-none">Budget</h1>
             <p className="text-sm text-[#9D5C7E] mt-1">Soft, smart money planning — your way.</p>
           </div>
           <div className="flex items-center gap-2">
