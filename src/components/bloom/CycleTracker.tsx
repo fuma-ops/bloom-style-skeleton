@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { PeriodSetup, type CycleSettings } from "./PeriodSetup";
 import { BloomBubbles } from "./BloomBubbles";
+import { KawaiiBackground } from "./KawaiiBackground";
 
 /* ---------- Default cycle settings (easy to edit) ---------- */
 const DEFAULT_SETTINGS: CycleSettings = {
@@ -122,21 +123,24 @@ export function CycleTracker() {
 
   return (
     <div className="relative">
-      {/* dreamy 3D pink bubble background */}
-      <BloomBubbles count={22} />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-hotpink/10 blur-3xl animate-bloom-pulse" />
-        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-rose/15 blur-3xl animate-bloom-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-petal/30 blur-3xl animate-bloom-pulse" style={{ animationDelay: "3s" }} />
-      </div>
+      {/* dreamy kawaii 3D pink gradient background */}
+      <KawaiiBackground count={16} />
+      <BloomBubbles count={18} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* ============= Calendar card ============= */}
         <div className="lg:col-span-2 rounded-[2rem] bg-white/85 p-5 sm:p-7 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-script text-5xl text-hotpink">Cycle ✿</h2>
-            <button onClick={() => setSetupOpen(true)} className="inline-flex items-center gap-1.5 rounded-full bg-hotpink px-4 py-2 text-sm font-semibold text-white shadow-md shadow-hotpink/30 transition hover:scale-[1.03] hover:bg-magenta">
-              <Plus className="h-4 w-4" /> Log & Settings
+            <button
+              onClick={() => setSetupOpen(true)}
+              className="group relative inline-flex items-center gap-1.5 overflow-hidden rounded-full bloom-button-gradient px-5 py-2.5 text-sm font-bold text-white transition hover:scale-[1.06] active:scale-95"
+            >
+              <Sparkles className="h-4 w-4 animate-bloom-sparkle" />
+              <Plus className="h-4 w-4" />
+              <span>Log &amp; Settings</span>
+              {/* shimmer sweep */}
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-bloom-shimmer" />
             </button>
           </div>
 
