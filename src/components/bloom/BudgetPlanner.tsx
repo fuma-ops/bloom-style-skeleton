@@ -529,9 +529,14 @@ function DashboardTab(props: {
   ];
   const completed = steps.filter(s => s.done).length;
   const nextStep = steps.find(s => !s.done);
-  const allDone = completed === steps.length;
+  const hasAnyData =
+    incomes.length > 0 ||
+    txns.length > 0 ||
+    goals.length > 0 ||
+    bills.length > 0 ||
+    Object.values(budget).some(v => v > 0);
 
-  if (!allDone) {
+  if (!hasAnyData) {
     return (
       <div className="space-y-5">
         <Card className="relative overflow-hidden">
