@@ -412,16 +412,18 @@ function StatCards({ income, expenses, savings, balance, currency }: {
   income: number; expenses: number; savings: number; balance: number; currency: CurrencyKey;
 }) {
   const items = [
-    { label: "Total Income",   v: income,   emoji: "💰", tone: "bg-emerald-100 text-emerald-700" },
-    { label: "Total Expenses", v: expenses, emoji: "📤", tone: "bg-rose-100 text-rose-700" },
-    { label: "Total Savings",  v: savings,  emoji: "🌸", tone: "bg-pink-100 text-hotpink" },
-    { label: "Total Balance",  v: balance,  emoji: "💎", tone: "bg-violet-100 text-violet-700" },
+    { label: "Total Income",   v: income,   Icon: Wallet,          tone: "bg-emerald-100 text-emerald-700" },
+    { label: "Total Expenses", v: expenses, Icon: TrendingDown,    tone: "bg-rose-100 text-rose-700" },
+    { label: "Total Savings",  v: savings,  Icon: PiggyBank,       tone: "bg-pink-100 text-hotpink" },
+    { label: "Total Balance",  v: balance,  Icon: Gem,             tone: "bg-violet-100 text-violet-700" },
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
-          <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone} text-lg`}>{it.emoji}</div>
+          <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone}`}>
+            <it.Icon className="h-5 w-5" />
+          </div>
           <div
             className="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
             style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
