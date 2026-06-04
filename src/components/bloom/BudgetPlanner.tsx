@@ -6,7 +6,8 @@ import {
   Flame, Smartphone, Pill, Sparkle, Film, Shirt, Plane, Heart, UtensilsCrossed,
   Baby, PawPrint, Package, BookHeart, Target, Briefcase, Banknote,
   Building2, LineChart as LineIcon, Calendar, Download, Filter, ArrowUpRight,
-  ArrowDownRight, type LucideIcon,
+  ArrowDownRight, ArrowRight, CheckCircle2, CircleDot, Coins, Receipt,
+  Flag, FileBarChart, Calculator, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
 import { BudgetBubbles } from "./BudgetBubbles";
@@ -60,9 +61,9 @@ const FREQUENCIES = ["Monthly","Weekly","Bi-weekly","One-time"] as const;
 type Frequency = typeof FREQUENCIES[number];
 
 const MOODS = [
-  { key: "planned",   label: "Planned",   emoji: "🎯", tone: "bg-mint/30 text-emerald-700 border-emerald-200" },
-  { key: "necessary", label: "Necessary", emoji: "✅", tone: "bg-pink-100 text-hotpink border-pink-200" },
-  { key: "impulsive", label: "Impulsive", emoji: "💸", tone: "bg-rose-100 text-magenta border-rose-200" },
+  { key: "planned",   label: "Planned",   Icon: Target,       tone: "bg-mint/30 text-emerald-700 border-emerald-200" },
+  { key: "necessary", label: "Necessary", Icon: CheckCircle2, tone: "bg-pink-100 text-hotpink border-pink-200" },
+  { key: "impulsive", label: "Impulsive", Icon: Zap,          tone: "bg-rose-100 text-magenta border-rose-200" },
 ] as const;
 type MoodKey = typeof MOODS[number]["key"];
 
@@ -273,6 +274,7 @@ export function BudgetPlanner() {
   const [txns, setTxns] = useLocal<Txn[]>("bp:txns", []);
   const [goals, setGoals] = useLocal<Goal[]>("bp:goals", []);
   const [bills, setBills] = useLocal<Bill[]>("bp:bills", []);
+  const [calcDone, setCalcDone] = useLocal<boolean>("bp:calcDone", false);
 
   const allCats: Cat[] = useMemo(() => [
     ...DEFAULT_CATS,
@@ -305,7 +307,7 @@ export function BudgetPlanner() {
         {/* Title + currency */}
         <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
           <div>
-            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-sm">Budget ✿</h1>
+            <h1 className="font-script text-5xl sm:text-6xl leading-none text-[#ec4699] font-bold shadow-sm">Budget</h1>
             <p className="text-sm text-[#9D5C7E] mt-1">Soft, smart money planning — your way.</p>
           </div>
           <div className="flex items-center gap-2">
@@ -357,6 +359,8 @@ export function BudgetPlanner() {
               goals={goals}
               bills={bills}
               setTab={setTab}
+              incomes={incomes}
+              calcDone={calcDone}
             />
           )}
           {tab === "Incomes" && (
@@ -380,6 +384,7 @@ export function BudgetPlanner() {
               budget={budget} setBudget={setBudget}
               currency={currency}
               setTab={setTab}
+              onApplied={() => setCalcDone(true)}
             />
           )}
           {tab === "Savings Goals" && (
@@ -411,16 +416,18 @@ function StatCards({ income, expenses, savings, balance, currency }: {
   income: number; expenses: number; savings: number; balance: number; currency: CurrencyKey;
 }) {
   const items = [
-    { label: "Total Income",   v: income,   emoji: "💰", tone: "bg-emerald-100 text-emerald-700" },
-    { label: "Total Expenses", v: expenses, emoji: "📤", tone: "bg-rose-100 text-rose-700" },
-    { label: "Total Savings",  v: savings,  emoji: "🌸", tone: "bg-pink-100 text-hotpink" },
-    { label: "Total Balance",  v: balance,  emoji: "💎", tone: "bg-violet-100 text-violet-700" },
+    { label: "Total Income",   v: income,   Icon: Wallet,          tone: "bg-emerald-100 text-emerald-700" },
+    { label: "Total Expenses", v: expenses, Icon: TrendingDown,    tone: "bg-rose-100 text-rose-700" },
+    { label: "Total Savings",  v: savings,  Icon: PiggyBank,       tone: "bg-pink-100 text-hotpink" },
+    { label: "Total Balance",  v: balance,  Icon: Gem,             tone: "bg-violet-100 text-violet-700" },
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
-          <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone} text-lg`}>{it.emoji}</div>
+          <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone}`}>
+            <it.Icon className="h-5 w-5" />
+          </div>
           <div
             className="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
             style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
@@ -448,9 +455,11 @@ function DashboardTab(props: {
   txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
   budget: Budget; selectedCats: string[]; allCats: Cat[];
   goals: Goal[]; bills: Bill[]; setTab: (t: TabKey) => void;
+  incomes: Income[]; calcDone: boolean;
 }) {
   const { currency, totalIncome, totalExpenses, totalSavings, totalBalance,
-    txns, setTxns, selectedCats, allCats, goals, bills, setTab } = props;
+    txns, setTxns, selectedCats, allCats, goals, bills, setTab,
+    incomes, calcDone, budget } = props;
 
   // Donut data: expense totals by category
   const donutData = useMemo(() => {
@@ -500,6 +509,118 @@ function DashboardTab(props: {
     setAmount(""); setDesc("");
   }
 
+  const steps = [
+    { key: "income", label: "Add your income",            done: incomes.length > 0,                                                            tab: "Incomes"           as TabKey, Icon: Wallet },
+    { key: "setup",  label: "Set up your budget",         done: selectedCats.length > 0 && Object.values(budget).some(v => v > 0),             tab: "Budget Setup"      as TabKey, Icon: Receipt },
+    { key: "calc",   label: "Run the Smart Calculator",   done: calcDone,                                                                       tab: "Smart Calculator"  as TabKey, Icon: Calculator },
+    { key: "goals",  label: "Add a savings goal",         done: goals.length > 0,                                                               tab: "Savings Goals"     as TabKey, Icon: Flag },
+    { key: "track",  label: "Track your spending",        done: txns.length > 0,                                                                tab: "Reports"           as TabKey, Icon: FileBarChart },
+  ];
+  const completed = steps.filter(s => s.done).length;
+  const nextStep = steps.find(s => !s.done);
+  const allDone = completed === steps.length;
+
+  if (!allDone) {
+    return (
+      <div className="space-y-5">
+        <Card className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-pink-200/50 blur-2xl" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-[11px] font-bold tracking-widest text-[#9D5C7E]">
+              <Sparkles className="h-3 w-3 text-[#EC4899]" /> WELCOME
+            </span>
+            <h2 className="mt-3 font-script text-4xl sm:text-5xl text-[#831843] leading-tight">
+              Let's set up your soft budget
+            </h2>
+            <p className="mt-2 text-sm text-[#9D5C7E] max-w-lg">
+              Five gentle steps and you're done. Bloom will guide you the whole way — no pressure, no spreadsheets.
+            </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex-1 h-2 rounded-full bg-pink-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${(completed / steps.length) * 100}%`,
+                    background: "linear-gradient(90deg,#C084FC,#EC4899)",
+                  }}
+                />
+              </div>
+              <span className="text-xs font-bold tracking-widest text-[#9D5C7E]">
+                {completed}/{steps.length}
+              </span>
+            </div>
+
+            <div className="mt-5">
+              <PrimaryBtn
+                onClick={() => nextStep && setTab(nextStep.tab)}
+                className="text-base px-6 py-3 shadow-lg shadow-pink-400/40 animate-pulse"
+              >
+                <Sparkles className="h-4 w-4" />
+                {completed === 0 ? "Start Here" : `Continue: ${nextStep?.label}`}
+                <ArrowRight className="h-4 w-4" />
+              </PrimaryBtn>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-3">YOUR PATH</h3>
+          <ol className="space-y-2">
+            {steps.map((s, i) => {
+              const isNext = !s.done && s === nextStep;
+              return (
+                <li
+                  key={s.key}
+                  className={[
+                    "flex items-center gap-3 rounded-2xl px-3 py-3 transition-all border-[0.5px]",
+                    s.done
+                      ? "bg-emerald-50/70 border-emerald-200/60"
+                      : isNext
+                        ? "bg-pink-50 border-pink-300/60 shadow-sm"
+                        : "bg-white/70 border-pink-200/40",
+                  ].join(" ")}
+                >
+                  <div
+                    className={[
+                      "grid h-9 w-9 shrink-0 place-items-center rounded-full",
+                      s.done
+                        ? "bg-emerald-500 text-white"
+                        : isNext
+                          ? "bg-[#EC4899] text-white"
+                          : "bg-pink-100 text-[#9D5C7E]",
+                    ].join(" ")}
+                  >
+                    {s.done ? <Check className="h-5 w-5" /> : <s.Icon className="h-4 w-4" strokeWidth={1.8} />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] font-bold tracking-widest text-[#9D5C7E]">
+                      STEP {i + 1}
+                    </div>
+                    <div className={`text-sm font-semibold ${s.done ? "text-emerald-700 line-through decoration-emerald-300" : "text-[#831843]"}`}>
+                      {s.label}
+                    </div>
+                  </div>
+                  {isNext && (
+                    <button
+                      onClick={() => setTab(s.tab)}
+                      className="inline-flex items-center gap-1 rounded-full bg-[#EC4899] px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-pink-400/30 hover:bg-[#DB2777] transition active:scale-95"
+                    >
+                      Go <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                  {s.done && (
+                    <span className="text-[11px] font-semibold text-emerald-700">Done</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <StatCards income={totalIncome} expenses={totalExpenses} savings={totalSavings} balance={totalBalance} currency={currency} />
@@ -512,7 +633,7 @@ function DashboardTab(props: {
             <PiggyBank className="h-5 w-5 text-[#EC4899]" />
           </div>
           {donutData.length === 0 ? (
-            <EmptyState emoji="🍩" text="No expenses yet — log one below to see the breakdown." />
+            <EmptyState Icon={PiggyBank} text="No expenses yet — log one below to see the breakdown." />
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Donut data={donutData} total={totalExpenses} currency={currency} />
@@ -547,7 +668,7 @@ function DashboardTab(props: {
             <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
             <button onClick={() => setTab("Reports")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
           </div>
-          {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." compact /> : (
+          {bills.length === 0 ? <EmptyState Icon={Calendar} text="No bills yet." compact /> : (
             <ul className="space-y-2">
               {bills.slice(0, 3).map(b => {
                 const d = daysUntil(b.due);
@@ -573,7 +694,7 @@ function DashboardTab(props: {
             <h3 className="font-script text-2xl text-[#831843]">Top Goals</h3>
             <button onClick={() => setTab("Savings Goals")} className="text-xs font-semibold text-[#EC4899] hover:underline">View all</button>
           </div>
-          {goals.length === 0 ? <EmptyState emoji="🎯" text="No goals yet." compact /> : (
+          {goals.length === 0 ? <EmptyState Icon={Flag} text="No goals yet." compact /> : (
             <ul className="space-y-3">
               {goals.slice(0, 3).map(g => {
                 const p = Math.min(100, (g.saved / g.target) * 100);
@@ -612,13 +733,13 @@ function DashboardTab(props: {
           <Select value={catKey} onChange={(e) => setCatKey(e.target.value)} className="lg:col-span-1">
             {(selectedCats.length ? selectedCats : allCats.map(c => c.key)).map(k => {
               const c = allCats.find(x => x.key === k);
-              return <option key={k} value={k}>{c?.emoji} {c?.label}</option>;
+              return <option key={k} value={k}>{c?.label}</option>;
             })}
           </Select>
           <Input placeholder="Description (optional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="lg:col-span-2" />
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="lg:col-span-1" />
           <Select value={mood} onChange={(e) => setMood(e.target.value as MoodKey)} className="lg:col-span-1">
-            {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+            {MOODS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
           </Select>
         </div>
         <div className="mt-3 flex justify-end">
@@ -649,12 +770,19 @@ function IncomesTab({ incomes, setIncomes, currency }: {
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Income Sources 💰</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Wallet className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Income Sources</h2>
         <PrimaryBtn onClick={add}><Plus className="h-4 w-4" /> Add Income Source</PrimaryBtn>
       </div>
 
       {incomes.length === 0 ? (
-        <Card><EmptyState emoji="💸" text="Add your first income source to begin." /></Card>
+        <Card>
+          <EmptyState
+            Icon={Coins}
+            title="Let's add your first income source"
+            text="Tell Bloom what you earn so it can plan a soft, smart budget for you."
+            cta={{ label: "Add Income", onClick: add }}
+          />
+        </Card>
       ) : (
         <Card>
           <ul className="space-y-3">
@@ -731,7 +859,7 @@ function BudgetSetupTab(props: {
 
   return (
     <div className="space-y-5">
-      <h2 className="font-script text-4xl text-[#831843]">Set Up Your Expenses 📋</h2>
+      <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Receipt className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> Set Up Your Expenses</h2>
 
       <Card>
         <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-3">STEP 1 · CHOOSE CATEGORIES</h3>
@@ -746,7 +874,7 @@ function BudgetSetupTab(props: {
                      : "bg-white/80 text-[#831843] border-pink-300/40 hover:bg-pink-50",
                 ].join(" ")}
               >
-                <span className="text-2xl">{c.emoji}</span>
+                <c.Icon className={`h-6 w-6 ${on ? "text-white" : "text-[#EC4899]"}`} strokeWidth={1.6} />
                 <span className="text-center leading-tight text-xs">{c.label}</span>
               </button>
             );
@@ -780,7 +908,7 @@ function BudgetSetupTab(props: {
           </div>
         </div>
         {selectedCats.length === 0 ? (
-          <EmptyState emoji="🌷" text="Pick a few categories above to start." />
+          <EmptyState Icon={Sparkles} title="Pick a few categories above" text="Tap any category card to add it to your monthly budget." />
         ) : (
           <ul className="space-y-2">
             {selectedCats.map(k => {
@@ -790,7 +918,7 @@ function BudgetSetupTab(props: {
               return (
                 <li key={k} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
                   <div className="sm:col-span-5 flex items-center gap-2">
-                    <span className="text-xl">{c.emoji}</span>
+                    <c.Icon className="h-5 w-5 text-[#EC4899]" strokeWidth={1.6} />
                     <span className="font-semibold text-[#831843]">{c.label}</span>
                   </div>
                   <div className="sm:col-span-4">
@@ -817,16 +945,19 @@ function SmartCalcTab(props: {
   totalIncome: number; selectedCats: string[]; allCats: Cat[];
   budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
   currency: CurrencyKey; setTab: (t: TabKey) => void;
+  onApplied: () => void;
 }) {
-  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab } = props;
+  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab, onApplied } = props;
 
   if (totalIncome <= 0) {
     return (
       <Card>
-        <EmptyState emoji="🌼" text="Add your income first so we can suggest amounts." />
-        <div className="text-center mt-3">
-          <PrimaryBtn onClick={() => setTab("Incomes")}>Go to Incomes</PrimaryBtn>
-        </div>
+        <EmptyState
+          Icon={Wallet}
+          title="Add your income first"
+          text="The Smart Calculator uses your monthly income to suggest amounts for each category."
+          cta={{ label: "Go to Incomes", onClick: () => setTab("Incomes") }}
+        />
       </Card>
     );
   }
@@ -852,6 +983,7 @@ function SmartCalcTab(props: {
       items.forEach(({ c, sugg }) => { next[c.key] = Math.round(sugg); });
       return next;
     });
+    onApplied();
   }
 
   const summary = [
@@ -865,7 +997,7 @@ function SmartCalcTab(props: {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-script text-4xl text-[#831843]">Smart Budget Calculator ✨</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Calculator className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> Smart Budget Calculator</h2>
         <p className="text-sm text-[#9D5C7E]">Based on your income, here's how we suggest you allocate.</p>
       </div>
 
@@ -874,7 +1006,7 @@ function SmartCalcTab(props: {
           {items.map(({ c, sugg, set, dot, tip }) => (
             <li key={c.key} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
               <div className="sm:col-span-5 flex items-center gap-2">
-                <span className="text-xl">{c.emoji}</span>
+                <c.Icon className="h-5 w-5 text-[#EC4899]" strokeWidth={1.6} />
                 <span className="font-semibold text-[#831843]">{c.label}</span>
               </div>
               <div className="sm:col-span-3">
@@ -956,7 +1088,7 @@ function GoalsTab({ goals, setGoals, currency }: {
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Goals 🎯</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><Flag className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Goals</h2>
         <PrimaryBtn onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" /> Add New Goal</PrimaryBtn>
       </div>
 
@@ -982,16 +1114,23 @@ function GoalsTab({ goals, setGoals, currency }: {
       </Card>
 
       {goals.length === 0 ? (
-        <Card><EmptyState emoji="🎯" text="No goals yet — pick a preset or add your own." /></Card>
+        <Card>
+          <EmptyState
+            Icon={Flag}
+            title="Set your first savings goal"
+            text="Pick a preset above or open the form to dream up your own."
+            cta={{ label: "Add a Goal", onClick: () => setShowAdd(true) }}
+          />
+        </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {goals.map(g => {
             const pct = Math.min(100, g.target > 0 ? (g.saved / g.target) * 100 : 0);
             const remaining = Math.max(0, g.target - g.saved);
             const months = g.monthly > 0 ? Math.ceil(remaining / g.monthly) : null;
-            const status = pct >= 100 ? { l: "Achieved 💖", c: "bg-pink-100 text-hotpink" }
-              : g.saved > 0 ? { l: "On Track 💚", c: "bg-emerald-100 text-emerald-700" }
-              : { l: "Not Started ⚪", c: "bg-slate-100 text-slate-600" };
+            const status = pct >= 100 ? { l: "Achieved", c: "bg-pink-100 text-hotpink" }
+              : g.saved > 0 ? { l: "On Track", c: "bg-emerald-100 text-emerald-700" }
+              : { l: "Not Started", c: "bg-slate-100 text-slate-600" };
             return (
               <Card key={g.id}>
                 <div className="flex items-start justify-between gap-2">
@@ -1105,7 +1244,7 @@ function ReportsTab(props: {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="font-script text-4xl text-[#831843]">My Reports 📊</h2>
+        <h2 className="font-script text-4xl text-[#831843] flex items-center gap-2"><FileBarChart className="h-7 w-7 text-[#EC4899]" strokeWidth={1.6} /> My Reports</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => shiftMonth(-1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#FCE7F3] text-[#9D5C7E] hover:bg-pink-200 transition">
             <ChevronLeft className="h-4 w-4" />
@@ -1129,16 +1268,16 @@ function ReportsTab(props: {
             </Select>
             <Select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
               <option value="">All categories</option>
-              {allCats.map(c => <option key={c.key} value={c.key}>{c.emoji} {c.label}</option>)}
+              {allCats.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
             </Select>
             <Select value={filterMood} onChange={(e) => setFilterMood(e.target.value)}>
               <option value="">All moods</option>
-              {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+              {MOODS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
             </Select>
           </div>
         </div>
         {filtered.length === 0 ? (
-          <EmptyState emoji="🧾" text="No transactions for this month." />
+          <EmptyState Icon={Receipt} title="No transactions yet" text="Head to the Dashboard to log your first expense for this month." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -1152,9 +1291,9 @@ function ReportsTab(props: {
                   return (
                     <tr key={t.id} className="border-t border-pink-100">
                       <td className="py-2 text-[#831843]">{t.date}</td>
-                      <td className="text-[#831843]"><span className="mr-1">{c?.emoji}</span>{c?.label}</td>
+                      <td className="text-[#831843]">{c?.label}</td>
                       <td className="text-[#9D5C7E]">{t.description || "—"}</td>
-                      <td><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}>{mood.emoji} {mood.label}</span></td>
+                      <td><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}><mood.Icon className="h-3 w-3" /> {mood.label}</span></td>
                       <td>{t.type === "income"
                         ? <span className="inline-flex items-center text-emerald-700 text-xs font-semibold"><ArrowUpRight className="h-3 w-3" /> Income</span>
                         : <span className="inline-flex items-center text-rose-700 text-xs font-semibold"><ArrowDownRight className="h-3 w-3" /> Expense</span>}</td>
@@ -1187,13 +1326,20 @@ function ReportsTab(props: {
             <PrimaryBtn onClick={addBill} className="sm:col-span-2">Add</PrimaryBtn>
           </div>
         )}
-        {bills.length === 0 ? <EmptyState emoji="📆" text="No bills yet." /> : (
+        {bills.length === 0 ? (
+          <EmptyState
+            Icon={Calendar}
+            title="No upcoming bills"
+            text="Add a bill so Bloom can remind you before it's due."
+            cta={{ label: "Add a Bill", onClick: () => setBillOpen(true) }}
+          />
+        ) : (
           <ul className="space-y-2">
             {bills.map(b => {
               const d = daysUntil(b.due);
-              const status = b.paid ? { l: "Paid 💚", c: "bg-emerald-100 text-emerald-700" }
-                : d < 0 ? { l: "Overdue 🔴", c: "bg-red-100 text-red-700" }
-                : { l: "Upcoming 🟡", c: "bg-amber-100 text-amber-700" };
+              const status = b.paid ? { l: "Paid", c: "bg-emerald-100 text-emerald-700" }
+                : d < 0 ? { l: "Overdue", c: "bg-red-100 text-red-700" }
+                : { l: "Upcoming", c: "bg-amber-100 text-amber-700" };
               return (
                 <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-pink-50/40 px-3 py-2">
                   <div>
@@ -1230,11 +1376,39 @@ function ReportsTab(props: {
 /* ============================================================
    EMPTY + UTIL
 ============================================================ */
-function EmptyState({ emoji, text, compact }: { emoji: string; text: string; compact?: boolean }) {
+function EmptyState({
+  Icon = Sparkles,
+  title,
+  text,
+  cta,
+  compact,
+}: {
+  Icon?: LucideIcon;
+  title?: string;
+  text: string;
+  cta?: { label: string; onClick: () => void };
+  compact?: boolean;
+}) {
   return (
     <div className={`text-center ${compact ? "py-4" : "py-8"}`}>
-      <div className={`${compact ? "text-3xl" : "text-5xl"} mb-2`}>{emoji}</div>
-      <p className="text-sm text-[#9D5C7E]">{text}</p>
+      <div
+        className={`mx-auto mb-3 grid place-items-center rounded-full bg-pink-100 text-[#EC4899] ${
+          compact ? "h-10 w-10" : "h-14 w-14"
+        }`}
+      >
+        <Icon className={compact ? "h-5 w-5" : "h-7 w-7"} strokeWidth={1.6} />
+      </div>
+      {title && (
+        <p className="font-script text-2xl text-[#831843] leading-tight">{title}</p>
+      )}
+      <p className="mt-1 text-sm text-[#9D5C7E] max-w-md mx-auto">{text}</p>
+      {cta && (
+        <div className="mt-3">
+          <PrimaryBtn onClick={cta.onClick}>
+            <Plus className="h-4 w-4" /> {cta.label}
+          </PrimaryBtn>
+        </div>
+      )}
     </div>
   );
 }
