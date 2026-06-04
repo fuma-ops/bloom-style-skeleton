@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --font-script: "Caveat", "Dancing Script", cursive;
+  --font-sans: "Quicksand", "Nunito", system-ui, sans-serif;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap");
+
 /*
  * Design system definition.
  *
