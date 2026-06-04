@@ -741,8 +741,9 @@ function DashboardTab(props: {
 /* ============================================================
    INCOMES TAB
 ============================================================ */
-function IncomesTab({ incomes, setIncomes, currency }: {
-  incomes: Income[]; setIncomes: (v: Income[] | ((p: Income[]) => Income[])) => void; currency: CurrencyKey;
+function IncomesTab({ incomes, setIncomes, currency, setTab }: {
+  incomes: Income[]; setIncomes: (v: Income[] | ((p: Income[]) => Income[])) => void;
+  currency: CurrencyKey; setTab: (t: TabKey) => void;
 }) {
   const total = incomes.reduce((s, i) => s + toMonthly(i), 0);
   function add() {
@@ -797,6 +798,18 @@ function IncomesTab({ incomes, setIncomes, currency }: {
             <span className="font-semibold text-[#831843]">Total Monthly Income</span>
             <span className="font-script text-3xl text-[#EC4899]">{fmt(total, currency)}</span>
           </div>
+        </Card>
+      )}
+
+      {total > 0 && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">NICE WORK</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Income added — let's plan your budget.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Budget Setup")} className="shadow-lg shadow-pink-400/40">
+            Next: Budget Setup <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
         </Card>
       )}
     </div>
