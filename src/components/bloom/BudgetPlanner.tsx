@@ -376,19 +376,8 @@ export function BudgetPlanner() {
               suggestion={(catKey) => suggestionFor(catKey, totalIncome, selectedCats, allCats)}
             />
           )}
-          {tab === "Smart Calculator" && (
-            <SmartCalcTab
-              totalIncome={totalIncome}
-              selectedCats={selectedCats}
-              allCats={allCats}
-              budget={budget} setBudget={setBudget}
-              currency={currency}
-              setTab={setTab}
-              onApplied={() => setCalcDone(true)}
-            />
-          )}
           {tab === "Savings Goals" && (
-            <GoalsTab goals={goals} setGoals={setGoals} currency={currency} />
+            <GoalsTab goals={goals} setGoals={setGoals} currency={currency} setTab={setTab} />
           )}
           {tab === "Reports" && (
             <ReportsTab
