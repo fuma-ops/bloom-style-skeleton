@@ -7,7 +7,7 @@ import {
   Baby, PawPrint, Package, BookHeart, Target, Briefcase, Banknote,
   Building2, LineChart as LineIcon, Calendar, Download, Filter, ArrowUpRight,
   ArrowDownRight, ArrowRight, CheckCircle2, CircleDot, Coins, Receipt,
-  Flag, FileBarChart, Calculator, type LucideIcon,
+  Flag, FileBarChart, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
 import { BudgetBubbles } from "./BudgetBubbles";
@@ -26,7 +26,7 @@ const CURRENCIES = {
 type CurrencyKey = keyof typeof CURRENCIES;
 
 const TABS = [
-  "Dashboard", "Incomes", "Budget Setup", "Smart Calculator", "Savings Goals", "Reports",
+  "Dashboard", "Incomes", "Budget Setup", "Savings Goals", "Reports",
 ] as const;
 type TabKey = typeof TABS[number];
 
