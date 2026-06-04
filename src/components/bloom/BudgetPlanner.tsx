@@ -290,8 +290,18 @@ export function BudgetPlanner() {
   );
 
   return (
-    <div className="relative min-h-screen" style={{ background: "#FFF0F6" }}>
-      <KawaiiBackground count={12} />
+    <div
+      className="relative min-h-screen"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,240,246,0.55), rgba(255,240,246,0.75)), url('/images/budget-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <KawaiiBackground count={10} />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Title + currency */}
