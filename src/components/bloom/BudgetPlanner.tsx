@@ -981,8 +981,9 @@ function BudgetSetupTab(props: {
 /* ============================================================
    SAVINGS GOALS TAB
 ============================================================ */
-function GoalsTab({ goals, setGoals, currency }: {
-  goals: Goal[]; setGoals: (v: Goal[] | ((p: Goal[]) => Goal[])) => void; currency: CurrencyKey;
+function GoalsTab({ goals, setGoals, currency, setTab }: {
+  goals: Goal[]; setGoals: (v: Goal[] | ((p: Goal[]) => Goal[])) => void;
+  currency: CurrencyKey; setTab: (t: TabKey) => void;
 }) {
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
@@ -1084,6 +1085,18 @@ function GoalsTab({ goals, setGoals, currency }: {
             );
           })}
         </div>
+      )}
+
+      {goals.length > 0 && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">DREAM LOCKED IN</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Final step — track your spending.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Reports")} className="shadow-lg shadow-pink-400/40">
+            Next: Reports <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
+        </Card>
       )}
     </div>
   );
