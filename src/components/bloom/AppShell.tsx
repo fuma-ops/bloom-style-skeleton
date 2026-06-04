@@ -62,7 +62,7 @@ export function AppShell() {
 
       {/* Main */}
       <main className="min-h-screen pb-24 md:ml-20 md:pb-10 lg:ml-60">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8">
+        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <Outlet />
         </div>
       </main>
