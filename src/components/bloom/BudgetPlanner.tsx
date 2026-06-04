@@ -9,6 +9,7 @@ import {
   ArrowDownRight, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
+import { BudgetBubbles } from "./BudgetBubbles";
 
 /* ============================================================
    TOKENS / CONSTANTS
@@ -291,17 +292,14 @@ export function BudgetPlanner() {
 
   return (
     <div
-      className="relative min-h-screen"
+      className="relative min-h-screen overflow-hidden"
       style={{
-        backgroundImage:
-          "linear-gradient(rgba(255,240,246,0.55), rgba(255,240,246,0.75)), url('/images/budget-bg.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        backgroundRepeat: "no-repeat",
+        background:
+          "radial-gradient(circle at 20% 10%, #FFE4F1 0%, transparent 55%), radial-gradient(circle at 85% 80%, #FBCFE8 0%, transparent 50%), linear-gradient(180deg, #FFF5FA 0%, #FFE9F3 100%)",
       }}
     >
-      <KawaiiBackground count={10} />
+      <BudgetBubbles />
+      <KawaiiBackground count={8} />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Title + currency */}
