@@ -833,9 +833,11 @@ function BudgetSetupTab(props: {
   budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
   customCats: CustomCat[]; setCustomCats: (v: CustomCat[] | ((p: CustomCat[]) => CustomCat[])) => void;
   currency: CurrencyKey;
+  totalIncome: number;
+  setTab: (t: TabKey) => void;
   suggestion: (catKey: string) => number;
 }) {
-  const { allCats, selectedCats, setSelectedCats, budget, setBudget, customCats, setCustomCats, currency, suggestion } = props;
+  const { allCats, selectedCats, setSelectedCats, budget, setBudget, customCats, setCustomCats, currency, totalIncome, setTab, suggestion } = props;
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✨");
@@ -857,6 +859,18 @@ function BudgetSetupTab(props: {
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
   }
+
+  function applySuggestions() {
+    setBudget(prev => {
+      const next = { ...prev };
+      selectedCats.forEach(k => { const s = suggestion(k); if (s > 0) next[k] = s; });
+      return next;
+    });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1600);
+  }
+
+  const hasAmounts = selectedCats.length > 0 && Object.values(budget).some(v => v > 0);
 
   return (
     <div className="space-y-5">
@@ -935,6 +949,30 @@ function BudgetSetupTab(props: {
           </ul>
         )}
       </Card>
+
+      {hasAmounts && (
+        <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300/40">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#9D5C7E]">BUDGET SET</p>
+            <p className="font-script text-2xl text-[#831843] leading-tight">Now set a sweet little savings goal.</p>
+          </div>
+          <PrimaryBtn onClick={() => setTab("Savings Goals")} className="shadow-lg shadow-pink-400/40">
+            Next: Savings Goals <ArrowRight className="h-4 w-4" />
+          </PrimaryBtn>
+        </Card>
+      )}
+
+      {totalIncome > 0 && selectedCats.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="font-script text-2xl text-[#831843]">Smart Suggestion · 50/30/20</h3>
+              <p className="text-xs text-[#9D5C7E]">Let Bloom auto-fill your amounts based on your income.</p>
+            </div>
+            <GhostBtn onClick={applySuggestions}><Sparkles className="h-4 w-4" /> Apply Suggested Amounts</GhostBtn>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
