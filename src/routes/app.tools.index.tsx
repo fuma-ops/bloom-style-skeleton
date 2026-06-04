@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type MouseEvent } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { ArrowRight, Sparkles, Search, Pin, PinOff } from "lucide-react";
 import { TOOLS, type Tool } from "@/components/bloom/tools";
 import { BloomBubbles } from "@/components/bloom/BloomBubbles";
 
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/app/tools/")({
 });
 
 const LAST_KEY = "bloom:last-tool";
+const PINS_KEY = "bloom:pinned-tools";
 
 function linkPropsFor(t: Tool) {
   return t.slug === "budget"
@@ -19,9 +20,15 @@ function linkPropsFor(t: Tool) {
 
 function ToolsIndex() {
   const [last, setLast] = useState<string | null>(null);
+  const [pins, setPins] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     try { setLast(localStorage.getItem(LAST_KEY)); } catch {}
+    try {
+      const raw = localStorage.getItem(PINS_KEY);
+      if (raw) setPins(JSON.parse(raw));
+    } catch {}
   }, []);
 
   const lastTool = last ? TOOLS.find((t) => t.slug === last) : null;
@@ -29,6 +36,24 @@ function ToolsIndex() {
   const remember = (slug: string) => {
     try { localStorage.setItem(LAST_KEY, slug); } catch {}
   };
+
+  const togglePin = (slug: string) => {
+    setPins((prev) => {
+      const next = prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug];
+      try { localStorage.setItem(PINS_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  const ordered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? TOOLS.filter((t) => t.label.toLowerCase().includes(q) || t.blurb.toLowerCase().includes(q))
+      : TOOLS;
+    const pinned = filtered.filter((t) => pins.includes(t.slug));
+    const rest = filtered.filter((t) => !pins.includes(t.slug));
+    return [...pinned, ...rest];
+  }, [pins, query]);
 
   return (
     <div className="relative animate-fade-in">
@@ -38,6 +63,16 @@ function ToolsIndex() {
       <header className="mb-6">
         <h1 className="font-script text-5xl sm:text-6xl text-hotpink leading-none">Tools</h1>
         <p className="mt-1 text-sm text-rose/80">pick your bloom for today ✿</p>
+
+        <div className="mt-4 relative max-w-md">
+          <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose/60" strokeWidth={1.8} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tools…"
+            className="w-full rounded-full bg-white/85 backdrop-blur pl-11 pr-4 py-2.5 text-sm text-rose placeholder:text-rose/50 border border-petal/60 outline-none transition focus:ring-4 focus:ring-hotpink/20 focus:border-hotpink"
+          />
+        </div>
       </header>
 
       {/* CONTINUE STRIP */}
@@ -51,11 +86,30 @@ function ToolsIndex() {
       )}
 
       {/* GRID */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-2 [perspective:1200px]">
-        {TOOLS.map((t, i) => (
-          <ClayToolCard key={t.slug} tool={t} index={i} onGo={() => remember(t.slug)} />
-        ))}
-      </div>
+      {ordered.length === 0 ? (
+        <div className="rounded-3xl bg-white/85 backdrop-blur p-8 border border-petal/50 text-center">
+          <p className="text-sm text-rose">No tools match "{query}".</p>
+          <button
+            onClick={() => setQuery("")}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-hotpink px-4 py-2 text-xs font-semibold text-white shadow-md shadow-hotpink/30 transition hover:scale-[1.03] hover:bg-magenta"
+          >
+            Clear search
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-2 [perspective:1200px]">
+          {ordered.map((t, i) => (
+            <ClayToolCard
+              key={t.slug}
+              tool={t}
+              index={i}
+              pinned={pins.includes(t.slug)}
+              onGo={() => remember(t.slug)}
+              onTogglePin={() => togglePin(t.slug)}
+            />
+          ))}
+        </div>
+      )}
 
       <style>{`
         @keyframes bloom-pop {
@@ -91,12 +145,12 @@ function ToolsIndex() {
         }
         .clay-blob {
           background:
-            radial-gradient(circle at 30% 25%, oklch(1 0 0 / 0.95), oklch(0.95 0.08 350 / 0.6) 30%, oklch(0.78 0.22 350 / 0.85) 70%, oklch(0.6 0.27 350 / 0.95));
+            radial-gradient(circle at 30% 25%, oklch(0.82 0.22 350 / 0.95), oklch(0.7 0.26 350) 45%, oklch(0.58 0.28 0) 90%);
           box-shadow:
-            inset 6px 8px 14px oklch(1 0 0 / 0.55),
-            inset -8px -10px 18px oklch(0.55 0.25 350 / 0.45),
-            0 14px 28px -10px oklch(0.6 0.27 350 / 0.55),
-            0 4px 10px oklch(0.6 0.27 350 / 0.25);
+            inset 4px 6px 12px oklch(1 0 0 / 0.45),
+            inset -6px -8px 14px oklch(0.45 0.26 0 / 0.5),
+            0 14px 28px -10px oklch(0.62 0.27 0 / 0.55),
+            0 4px 10px oklch(0.62 0.27 0 / 0.3);
         }
         .clay-card-bg {
           background:
@@ -140,7 +194,7 @@ function ContinueStrip({ tool, onGo }: { tool: Tool; onGo: () => void }) {
   );
 }
 
-function ClayToolCard({ tool, index, onGo }: { tool: Tool; index: number; onGo: () => void }) {
+function ClayToolCard({ tool, index, onGo, pinned, onTogglePin }: { tool: Tool; index: number; onGo: () => void; pinned: boolean; onTogglePin: () => void }) {
   const Icon = tool.icon;
   const [squish, setSquish] = useState(false);
 
@@ -162,11 +216,35 @@ function ClayToolCard({ tool, index, onGo }: { tool: Tool; index: number; onGo: 
           <span className="clay-icon grid h-20 w-20 sm:h-24 sm:w-24 place-items-center rounded-[1.75rem] clay-blob text-white">
             <Icon className="h-9 w-9 sm:h-10 sm:w-10 drop-shadow-[0_2px_3px_oklch(0.4_0.22_350/0.4)]" strokeWidth={1.6} />
           </span>
-          <span className="opacity-0 group-hover:opacity-100 transition inline-flex h-9 w-9 items-center justify-center rounded-full bg-hotpink text-white shadow-md shadow-hotpink/40">
-            <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(); }}
+              aria-label={pinned ? "Unpin tool" : "Pin tool"}
+              title={pinned ? "Unpin" : "Pin to top"}
+              className={[
+                "inline-flex h-9 w-9 items-center justify-center rounded-full border transition",
+                pinned
+                  ? "bg-hotpink text-white border-transparent shadow-md shadow-hotpink/40"
+                  : "bg-white/80 text-hotpink border-petal/60 hover:bg-white opacity-70 group-hover:opacity-100",
+              ].join(" ")}
+            >
+              {pinned
+                ? <Pin className="h-4 w-4" strokeWidth={2} fill="currentColor" />
+                : <PinOff className="h-4 w-4" strokeWidth={1.8} />}
+            </button>
+            <span className="opacity-0 group-hover:opacity-100 transition inline-flex h-9 w-9 items-center justify-center rounded-full bg-hotpink text-white shadow-md shadow-hotpink/40">
+              <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+            </span>
+          </div>
         </div>
-        <h3 className="mt-5 font-script text-3xl sm:text-4xl text-hotpink leading-none">{tool.label}</h3>
+        <div className="mt-5 flex items-center gap-2">
+          <h3 className="font-script text-3xl sm:text-4xl text-hotpink leading-none">{tool.label}</h3>
+          {pinned && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-hotpink/10 text-hotpink text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-hotpink/20">
+              <Pin className="h-2.5 w-2.5" strokeWidth={2} fill="currentColor" /> Pinned
+            </span>
+          )}
+        </div>
         <p className="mt-1.5 text-sm text-rose/80 leading-relaxed">{tool.blurb}</p>
       </div>
     </Link>
