@@ -615,7 +615,7 @@ function DashboardTab(props: {
           <Select value={catKey} onChange={(e) => setCatKey(e.target.value)} className="lg:col-span-1">
             {(selectedCats.length ? selectedCats : allCats.map(c => c.key)).map(k => {
               const c = allCats.find(x => x.key === k);
-              return <option key={k} value={k}>{c?.emoji} {c?.label}</option>;
+              return <option key={k} value={k}>{c?.label}</option>;
             })}
           </Select>
           <Input placeholder="Description (optional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="lg:col-span-2" />
@@ -749,7 +749,7 @@ function BudgetSetupTab(props: {
                      : "bg-white/80 text-[#831843] border-pink-300/40 hover:bg-pink-50",
                 ].join(" ")}
               >
-                <span className="text-2xl">{c.emoji}</span>
+                <c.Icon className={`h-6 w-6 ${on ? "text-white" : "text-[#EC4899]"}`} strokeWidth={1.6} />
                 <span className="text-center leading-tight text-xs">{c.label}</span>
               </button>
             );
@@ -793,7 +793,7 @@ function BudgetSetupTab(props: {
               return (
                 <li key={k} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
                   <div className="sm:col-span-5 flex items-center gap-2">
-                    <span className="text-xl">{c.emoji}</span>
+                    <c.Icon className="h-5 w-5 text-[#EC4899]" strokeWidth={1.6} />
                     <span className="font-semibold text-[#831843]">{c.label}</span>
                   </div>
                   <div className="sm:col-span-4">
@@ -877,7 +877,7 @@ function SmartCalcTab(props: {
           {items.map(({ c, sugg, set, dot, tip }) => (
             <li key={c.key} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl bg-pink-50/40 px-3 py-2">
               <div className="sm:col-span-5 flex items-center gap-2">
-                <span className="text-xl">{c.emoji}</span>
+                <c.Icon className="h-5 w-5 text-[#EC4899]" strokeWidth={1.6} />
                 <span className="font-semibold text-[#831843]">{c.label}</span>
               </div>
               <div className="sm:col-span-3">
@@ -1132,7 +1132,7 @@ function ReportsTab(props: {
             </Select>
             <Select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
               <option value="">All categories</option>
-              {allCats.map(c => <option key={c.key} value={c.key}>{c.emoji} {c.label}</option>)}
+              {allCats.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
             </Select>
             <Select value={filterMood} onChange={(e) => setFilterMood(e.target.value)}>
               <option value="">All moods</option>
@@ -1155,7 +1155,7 @@ function ReportsTab(props: {
                   return (
                     <tr key={t.id} className="border-t border-pink-100">
                       <td className="py-2 text-[#831843]">{t.date}</td>
-                      <td className="text-[#831843]"><span className="mr-1">{c?.emoji}</span>{c?.label}</td>
+                      <td className="text-[#831843]">{c?.label}</td>
                       <td className="text-[#9D5C7E]">{t.description || "—"}</td>
                       <td><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}><mood.Icon className="h-3 w-3" /> {mood.label}</span></td>
                       <td>{t.type === "income"
