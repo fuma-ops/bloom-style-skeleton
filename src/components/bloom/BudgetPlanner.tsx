@@ -9,6 +9,7 @@ import {
   ArrowDownRight, type LucideIcon,
 } from "lucide-react";
 import { KawaiiBackground } from "./KawaiiBackground";
+import { BudgetBubbles } from "./BudgetBubbles";
 
 /* ============================================================
    TOKENS / CONSTANTS
