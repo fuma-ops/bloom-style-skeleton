@@ -444,11 +444,11 @@ function DashboardTab(props: {
   txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
   budget: Budget; selectedCats: string[]; allCats: Cat[];
   goals: Goal[]; bills: Bill[]; setTab: (t: TabKey) => void;
-  incomes: Income[]; calcDone: boolean;
+  incomes: Income[];
 }) {
   const { currency, totalIncome, totalExpenses, totalSavings, totalBalance,
     txns, setTxns, selectedCats, allCats, goals, bills, setTab,
-    incomes, calcDone, budget } = props;
+    incomes, budget } = props;
 
   // Donut data: expense totals by category
   const donutData = useMemo(() => {
@@ -501,7 +501,6 @@ function DashboardTab(props: {
   const steps = [
     { key: "income", label: "Add your income",            done: incomes.length > 0,                                                            tab: "Incomes"           as TabKey, Icon: Wallet },
     { key: "setup",  label: "Set up your budget",         done: selectedCats.length > 0 && Object.values(budget).some(v => v > 0),             tab: "Budget Setup"      as TabKey, Icon: Receipt },
-    { key: "calc",   label: "Run the Smart Calculator",   done: calcDone,                                                                       tab: "Smart Calculator"  as TabKey, Icon: Calculator },
     { key: "goals",  label: "Add a savings goal",         done: goals.length > 0,                                                               tab: "Savings Goals"     as TabKey, Icon: Flag },
     { key: "track",  label: "Track your spending",        done: txns.length > 0,                                                                tab: "Reports"           as TabKey, Icon: FileBarChart },
   ];
