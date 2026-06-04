@@ -401,27 +401,50 @@ export function BudgetPlanner() {
 /* ============================================================
    TOP STAT CARDS
 ============================================================ */
+function useCountUp(target: number, duration = 900) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const from = 0;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(from + (target - from) * eased);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+}
+
+function StatNumber({ value, currency }: { value: number; currency: CurrencyKey }) {
+  const v = useCountUp(value);
+  return <>{fmt(v, currency)}</>;
+}
+
 function StatCards({ income, expenses, savings, balance, currency }: {
   income: number; expenses: number; savings: number; balance: number; currency: CurrencyKey;
 }) {
   const items = [
-    { label: "Total Income",   v: income,   Icon: Wallet,          tone: "bg-emerald-100 text-emerald-700" },
-    { label: "Total Expenses", v: expenses, Icon: TrendingDown,    tone: "bg-rose-100 text-rose-700" },
-    { label: "Total Savings",  v: savings,  Icon: PiggyBank,       tone: "bg-pink-100 text-hotpink" },
-    { label: "Total Balance",  v: balance,  Icon: Gem,             tone: "bg-violet-100 text-violet-700" },
+    { label: "Total Income",   v: income,   Icon: Wallet,       tone: "bg-pink-50 text-[#EC4899]" },
+    { label: "Total Expenses", v: expenses, Icon: TrendingDown, tone: "bg-pink-50 text-[#EC4899]" },
+    { label: "Total Savings",  v: savings,  Icon: PiggyBank,    tone: "bg-pink-50 text-[#EC4899]" },
+    { label: "Total Balance",  v: balance,  Icon: Gem,          tone: "bg-pink-50 text-[#EC4899]" },
   ];
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in">
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
           <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone}`}>
-            <it.Icon className="h-5 w-5" />
+            <it.Icon className="h-5 w-5" strokeWidth={1.6} />
           </div>
           <div
-            className="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
+            className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight font-script leading-none text-[#EC4899]"
             style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
           >
-            {fmt(it.v, currency)}
+            <StatNumber value={it.v} currency={currency} />
           </div>
           <div
             className="mt-1 text-[11px] font-extrabold tracking-widest text-[#BE185D]"
