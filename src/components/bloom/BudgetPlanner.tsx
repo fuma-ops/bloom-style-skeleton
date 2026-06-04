@@ -274,6 +274,7 @@ export function BudgetPlanner() {
   const [txns, setTxns] = useLocal<Txn[]>("bp:txns", []);
   const [goals, setGoals] = useLocal<Goal[]>("bp:goals", []);
   const [bills, setBills] = useLocal<Bill[]>("bp:bills", []);
+  const [calcDone, setCalcDone] = useLocal<boolean>("bp:calcDone", false);
 
   const allCats: Cat[] = useMemo(() => [
     ...DEFAULT_CATS,
@@ -358,6 +359,8 @@ export function BudgetPlanner() {
               goals={goals}
               bills={bills}
               setTab={setTab}
+              incomes={incomes}
+              calcDone={calcDone}
             />
           )}
           {tab === "Incomes" && (
@@ -381,6 +384,7 @@ export function BudgetPlanner() {
               budget={budget} setBudget={setBudget}
               currency={currency}
               setTab={setTab}
+              onApplied={() => setCalcDone(true)}
             />
           )}
           {tab === "Savings Goals" && (
