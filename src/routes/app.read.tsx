@@ -156,48 +156,22 @@ function ReadPage() {
       <BloomBubbles count={10} />
 
       {/* HEADER */}
-      <header>
-        <h1 className="font-script text-5xl sm:text-6xl text-hotpink leading-none">Read</h1>
-        <p className="mt-1 text-sm text-rose/80">soft reads for your softest era ✿</p>
-        <div className="mt-4 relative max-w-xl">
+      <header className="sticky top-0 z-30 -mx-3 px-3 pt-2 pb-2 sm:static sm:mx-0 sm:px-0 sm:pt-0 sm:pb-0 bg-blush/70 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none">
+        <h1 className="font-script text-3xl sm:text-5xl lg:text-6xl text-hotpink leading-none">Read</h1>
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-rose/80">soft reads for your softest era ✿</p>
+        <div className="mt-2 sm:mt-4 relative max-w-xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose/60" strokeWidth={1.8} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search articles, topics…"
-            className="w-full rounded-full bg-white/85 backdrop-blur pl-11 pr-4 py-3 text-sm text-rose placeholder:text-rose/50 border border-petal/60 outline-none transition focus:ring-4 focus:ring-hotpink/20 focus:border-hotpink"
+            className="w-full rounded-full bg-white/90 backdrop-blur pl-11 pr-4 py-2 sm:py-3 text-sm text-rose placeholder:text-rose/50 border border-petal/60 outline-none transition focus:ring-4 focus:ring-hotpink/20 focus:border-hotpink"
           />
         </div>
       </header>
 
-      {/* FEATURED */}
-      <section className="mt-8">
-        <button
-          onClick={() => setOpenId(featured.id)}
-          className="group block w-full text-left relative overflow-hidden rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.4)] transition hover:-translate-y-0.5"
-        >
-          <img src={IMG.featured} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-magenta/70 via-hotpink/20 to-transparent" />
-          <div className="relative px-6 py-10 sm:px-10 sm:py-14 min-h-[280px] sm:min-h-[360px] flex flex-col justify-end">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-hotpink">
-                <Sparkles className="h-3 w-3" strokeWidth={2} /> Today's pick
-              </span>
-              <TopicBadge topic={featured.topic} />
-            </div>
-            <h2 className="mt-3 font-script text-4xl sm:text-6xl text-white leading-none drop-shadow-[0_2px_6px_oklch(0.4_0.2_350/0.6)]">
-              {featured.title}
-            </h2>
-            <p className="mt-2 max-w-xl text-sm sm:text-base text-white/95 drop-shadow">{featured.excerpt}</p>
-            <div className="mt-3 flex items-center gap-3 text-white/95">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold"><Clock className="h-3.5 w-3.5" strokeWidth={1.8} /> {featured.minutes} min read</span>
-            </div>
-          </div>
-        </button>
-      </section>
-
-      {/* TOPIC CHIPS */}
-      <nav className="mt-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+      {/* TOPIC CHIPS — above the fold */}
+      <nav className="mt-3 sm:mt-6 -mx-3 px-3 sm:mx-0 sm:px-0">
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {TOPICS.map((t) => {
             const active = topic === t;
@@ -206,7 +180,7 @@ function ReadPage() {
                 key={t}
                 onClick={() => setTopic(t)}
                 className={[
-                  "shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition border",
+                  "shrink-0 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition border",
                   active
                     ? "bg-hotpink text-white border-transparent shadow-md shadow-hotpink/30"
                     : "bg-blush text-rose border-petal/50 hover:bg-petal/60",
@@ -219,8 +193,34 @@ function ReadPage() {
         </div>
       </nav>
 
+      {/* FEATURED */}
+      <section className="mt-4 sm:mt-8">
+        <button
+          onClick={() => setOpenId(featured.id)}
+          className="group block w-full text-left relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.4)] transition hover:-translate-y-0.5"
+        >
+          <img src={IMG.featured} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-magenta/70 via-hotpink/20 to-transparent" />
+          <div className="relative px-4 py-5 sm:px-10 sm:py-14 min-h-[170px] sm:min-h-[360px] flex flex-col justify-end">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-hotpink">
+                <Sparkles className="h-3 w-3" strokeWidth={2} /> Today's pick
+              </span>
+              <TopicBadge topic={featured.topic} />
+            </div>
+            <h2 className="mt-2 sm:mt-3 font-script text-2xl sm:text-6xl text-white leading-none drop-shadow-[0_2px_6px_oklch(0.4_0.2_350/0.6)]">
+              {featured.title}
+            </h2>
+            <p className="mt-1.5 sm:mt-2 max-w-xl text-xs sm:text-base text-white/95 drop-shadow line-clamp-2">{featured.excerpt}</p>
+            <div className="mt-2 sm:mt-3 flex items-center gap-3 text-white/95">
+              <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold"><Clock className="h-3.5 w-3.5" strokeWidth={1.8} /> {featured.minutes} min read</span>
+            </div>
+          </div>
+        </button>
+      </section>
+
       {/* GRID */}
-      <section className="mt-6">
+      <section className="mt-5 sm:mt-6">
         {filtered.length === 0 ? (
           <EmptyCard
             text={query ? `No reads matching "${query}".` : "No reads in this topic yet."}
@@ -228,7 +228,7 @@ function ReadPage() {
             onClick={() => { setQuery(""); setTopic("All"); }}
           />
         ) : (
-          <div key={topic + query} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
+          <div key={topic + query} className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 animate-fade-in">
             {filtered.map((a) => (
               <ArticleCard key={a.id} article={a} saved={!!saved[a.id]} onSave={() => toggleSave(a.id)} onOpen={() => setOpenId(a.id)} />
             ))}
@@ -237,25 +237,25 @@ function ReadPage() {
       </section>
 
       {/* FOR YOU */}
-      <section className="mt-12">
+      <section className="mt-8 sm:mt-12">
         <div className="mb-3">
-          <h2 className="font-script text-3xl sm:text-4xl text-hotpink">For you</h2>
+          <h2 className="font-script text-2xl sm:text-4xl text-hotpink">For you</h2>
           <p className="text-xs text-rose/70">Picked for your week ✿</p>
         </div>
-        <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto no-scrollbar">
-          <div className="flex gap-4 pb-2">
+        <div className="-mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto no-scrollbar">
+          <div className="flex gap-3 sm:gap-4 pb-2">
             {recommended.map((a) => (
               <button
                 key={a.id}
                 onClick={() => setOpenId(a.id)}
-                className="group relative shrink-0 w-64 text-left overflow-hidden rounded-3xl border border-petal/60 bg-white/85 backdrop-blur shadow-[0_8px_24px_-12px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-0.5"
+                className="group relative shrink-0 w-44 sm:w-64 text-left overflow-hidden rounded-2xl sm:rounded-3xl border border-petal/60 bg-white/85 backdrop-blur shadow-[0_8px_24px_-12px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-0.5"
               >
-                <div className="relative h-36 overflow-hidden">
+                <div className="relative h-24 sm:h-36 overflow-hidden">
                   <img src={a.image} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                   <div className="absolute top-2 left-2"><TopicBadge topic={a.topic} /></div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-bold text-rose leading-tight line-clamp-2">{a.title}</h3>
+                <div className="p-3 sm:p-4">
+                  <h3 className="text-xs sm:text-sm font-bold text-rose leading-tight line-clamp-2">{a.title}</h3>
                   <div className="mt-2"><ReadTime minutes={a.minutes} /></div>
                 </div>
               </button>
@@ -265,9 +265,9 @@ function ReadPage() {
       </section>
 
       {/* SAVED */}
-      <section className="mt-12 mb-4">
+      <section className="mt-8 sm:mt-12 mb-4">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-script text-3xl sm:text-4xl text-hotpink">Saved reads</h2>
+          <h2 className="font-script text-2xl sm:text-4xl text-hotpink">Saved reads</h2>
           {savedArticles.length > 0 && <span className="text-xs text-rose/70">{savedArticles.length} saved</span>}
         </div>
         {savedArticles.length === 0 ? (
@@ -284,7 +284,7 @@ function ReadPage() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 animate-fade-in">
             {savedArticles.map((a) => (
               <ArticleCard key={a.id} article={a} saved onSave={() => toggleSave(a.id)} onOpen={() => setOpenId(a.id)} />
             ))}
@@ -305,17 +305,17 @@ function ArticleCard({ article, saved, onSave, onOpen }: { article: Article; sav
   return (
     <button
       onClick={onOpen}
-      className="group relative text-left overflow-hidden rounded-3xl border border-petal/60 bg-white/85 backdrop-blur shadow-[0_8px_24px_-12px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_oklch(0.7_0.22_350/0.45)]"
+      className="group relative text-left overflow-hidden rounded-2xl sm:rounded-3xl border border-petal/60 bg-white/85 backdrop-blur shadow-[0_8px_24px_-12px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_oklch(0.7_0.22_350/0.45)]"
     >
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-28 sm:h-44 overflow-hidden">
         <img src={article.image} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <div className="absolute top-3 left-3"><TopicBadge topic={article.topic} /></div>
-        <div className="absolute top-3 right-3"><HeartBtn saved={saved} onClick={onSave} /></div>
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3"><TopicBadge topic={article.topic} /></div>
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3"><HeartBtn saved={saved} onClick={onSave} /></div>
       </div>
-      <div className="p-5">
-        <h3 className="text-base font-bold text-rose leading-snug">{article.title}</h3>
-        <p className="mt-1.5 text-sm text-rose/75 line-clamp-2">{article.excerpt}</p>
-        <div className="mt-3 flex items-center justify-between">
+      <div className="p-3 sm:p-5">
+        <h3 className="text-sm sm:text-base font-bold text-rose leading-snug line-clamp-2">{article.title}</h3>
+        <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-rose/75 line-clamp-2 hidden sm:block">{article.excerpt}</p>
+        <div className="mt-2 sm:mt-3 flex items-center justify-between">
           <ReadTime minutes={article.minutes} />
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-hotpink opacity-0 group-hover:opacity-100 transition">
             Read <ArrowRight className="h-3 w-3" strokeWidth={2} />
