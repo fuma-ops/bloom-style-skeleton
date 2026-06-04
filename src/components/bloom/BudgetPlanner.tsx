@@ -455,9 +455,11 @@ function DashboardTab(props: {
   txns: Txn[]; setTxns: (v: Txn[] | ((p: Txn[]) => Txn[])) => void;
   budget: Budget; selectedCats: string[]; allCats: Cat[];
   goals: Goal[]; bills: Bill[]; setTab: (t: TabKey) => void;
+  incomes: Income[]; calcDone: boolean;
 }) {
   const { currency, totalIncome, totalExpenses, totalSavings, totalBalance,
-    txns, setTxns, selectedCats, allCats, goals, bills, setTab } = props;
+    txns, setTxns, selectedCats, allCats, goals, bills, setTab,
+    incomes, calcDone, budget } = props;
 
   // Donut data: expense totals by category
   const donutData = useMemo(() => {
@@ -505,6 +507,118 @@ function DashboardTab(props: {
     if (!amt) return;
     setTxns(prev => [{ id: uid(), amount: amt, catKey, description: desc, date, mood, type: "expense" }, ...prev]);
     setAmount(""); setDesc("");
+  }
+
+  const steps = [
+    { key: "income", label: "Add your income",            done: incomes.length > 0,                                                            tab: "Incomes"           as TabKey, Icon: Wallet },
+    { key: "setup",  label: "Set up your budget",         done: selectedCats.length > 0 && Object.values(budget).some(v => v > 0),             tab: "Budget Setup"      as TabKey, Icon: Receipt },
+    { key: "calc",   label: "Run the Smart Calculator",   done: calcDone,                                                                       tab: "Smart Calculator"  as TabKey, Icon: Calculator },
+    { key: "goals",  label: "Add a savings goal",         done: goals.length > 0,                                                               tab: "Savings Goals"     as TabKey, Icon: Flag },
+    { key: "track",  label: "Track your spending",        done: txns.length > 0,                                                                tab: "Reports"           as TabKey, Icon: FileBarChart },
+  ];
+  const completed = steps.filter(s => s.done).length;
+  const nextStep = steps.find(s => !s.done);
+  const allDone = completed === steps.length;
+
+  if (!allDone) {
+    return (
+      <div className="space-y-5">
+        <Card className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-pink-200/50 blur-2xl" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-[11px] font-bold tracking-widest text-[#9D5C7E]">
+              <Sparkles className="h-3 w-3 text-[#EC4899]" /> WELCOME
+            </span>
+            <h2 className="mt-3 font-script text-4xl sm:text-5xl text-[#831843] leading-tight">
+              Let's set up your soft budget
+            </h2>
+            <p className="mt-2 text-sm text-[#9D5C7E] max-w-lg">
+              Five gentle steps and you're done. Bloom will guide you the whole way — no pressure, no spreadsheets.
+            </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex-1 h-2 rounded-full bg-pink-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${(completed / steps.length) * 100}%`,
+                    background: "linear-gradient(90deg,#C084FC,#EC4899)",
+                  }}
+                />
+              </div>
+              <span className="text-xs font-bold tracking-widest text-[#9D5C7E]">
+                {completed}/{steps.length}
+              </span>
+            </div>
+
+            <div className="mt-5">
+              <PrimaryBtn
+                onClick={() => nextStep && setTab(nextStep.tab)}
+                className="text-base px-6 py-3 shadow-lg shadow-pink-400/40 animate-pulse"
+              >
+                <Sparkles className="h-4 w-4" />
+                {completed === 0 ? "Start Here" : `Continue: ${nextStep?.label}`}
+                <ArrowRight className="h-4 w-4" />
+              </PrimaryBtn>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <h3 className="text-xs font-bold tracking-widest text-[#9D5C7E] mb-3">YOUR PATH</h3>
+          <ol className="space-y-2">
+            {steps.map((s, i) => {
+              const isNext = !s.done && s === nextStep;
+              return (
+                <li
+                  key={s.key}
+                  className={[
+                    "flex items-center gap-3 rounded-2xl px-3 py-3 transition-all border-[0.5px]",
+                    s.done
+                      ? "bg-emerald-50/70 border-emerald-200/60"
+                      : isNext
+                        ? "bg-pink-50 border-pink-300/60 shadow-sm"
+                        : "bg-white/70 border-pink-200/40",
+                  ].join(" ")}
+                >
+                  <div
+                    className={[
+                      "grid h-9 w-9 shrink-0 place-items-center rounded-full",
+                      s.done
+                        ? "bg-emerald-500 text-white"
+                        : isNext
+                          ? "bg-[#EC4899] text-white"
+                          : "bg-pink-100 text-[#9D5C7E]",
+                    ].join(" ")}
+                  >
+                    {s.done ? <Check className="h-5 w-5" /> : <s.Icon className="h-4 w-4" strokeWidth={1.8} />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] font-bold tracking-widest text-[#9D5C7E]">
+                      STEP {i + 1}
+                    </div>
+                    <div className={`text-sm font-semibold ${s.done ? "text-emerald-700 line-through decoration-emerald-300" : "text-[#831843]"}`}>
+                      {s.label}
+                    </div>
+                  </div>
+                  {isNext && (
+                    <button
+                      onClick={() => setTab(s.tab)}
+                      className="inline-flex items-center gap-1 rounded-full bg-[#EC4899] px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-pink-400/30 hover:bg-[#DB2777] transition active:scale-95"
+                    >
+                      Go <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                  {s.done && (
+                    <span className="text-[11px] font-semibold text-emerald-700">Done</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </Card>
+      </div>
+    );
   }
 
   return (
