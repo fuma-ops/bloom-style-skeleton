@@ -411,7 +411,7 @@ function StatCards({ income, expenses, savings, balance, currency }: {
     { label: "Total Balance",  v: balance,  Icon: Gem,             tone: "bg-violet-100 text-violet-700" },
   ];
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
       {items.map((it) => (
         <Card key={it.label} className="hover:-translate-y-1">
           <div className={`grid h-10 w-10 place-items-center rounded-full ${it.tone}`}>
@@ -650,7 +650,7 @@ function DashboardTab(props: {
       </div>
 
       {/* Bills + Goals preview + Health */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-script text-2xl text-[#831843]">Upcoming Bills</h3>
