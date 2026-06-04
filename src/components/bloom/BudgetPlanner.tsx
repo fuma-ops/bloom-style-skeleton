@@ -945,8 +945,9 @@ function SmartCalcTab(props: {
   totalIncome: number; selectedCats: string[]; allCats: Cat[];
   budget: Budget; setBudget: (v: Budget | ((p: Budget) => Budget)) => void;
   currency: CurrencyKey; setTab: (t: TabKey) => void;
+  onApplied: () => void;
 }) {
-  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab } = props;
+  const { totalIncome, selectedCats, allCats, budget, setBudget, currency, setTab, onApplied } = props;
 
   if (totalIncome <= 0) {
     return (
@@ -982,6 +983,7 @@ function SmartCalcTab(props: {
       items.forEach(({ c, sugg }) => { next[c.key] = Math.round(sugg); });
       return next;
     });
+    onApplied();
   }
 
   const summary = [
