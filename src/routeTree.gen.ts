@@ -9,38 +9,154 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppToolsRouteImport } from './routes/app.tools'
+import { Route as AppTodayRouteImport } from './routes/app.today'
+import { Route as AppShopRouteImport } from './routes/app.shop'
+import { Route as AppReadRouteImport } from './routes/app.read'
+import { Route as AppMeRouteImport } from './routes/app.me'
+import { Route as AppToolsIndexRouteImport } from './routes/app.tools.index'
+import { Route as AppToolsSlugRouteImport } from './routes/app.tools.$slug'
 
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppToolsRoute = AppToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTodayRoute = AppTodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppShopRoute = AppShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReadRoute = AppReadRouteImport.update({
+  id: '/read',
+  path: '/read',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMeRoute = AppMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppToolsIndexRoute = AppToolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppToolsRoute,
+} as any)
+const AppToolsSlugRoute = AppToolsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AppToolsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/me': typeof AppMeRoute
+  '/app/read': typeof AppReadRoute
+  '/app/shop': typeof AppShopRoute
+  '/app/today': typeof AppTodayRoute
+  '/app/tools': typeof AppToolsRouteWithChildren
+  '/app/': typeof AppIndexRoute
+  '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools/': typeof AppToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/me': typeof AppMeRoute
+  '/app/read': typeof AppReadRoute
+  '/app/shop': typeof AppShopRoute
+  '/app/today': typeof AppTodayRoute
+  '/app': typeof AppIndexRoute
+  '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools': typeof AppToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/me': typeof AppMeRoute
+  '/app/read': typeof AppReadRoute
+  '/app/shop': typeof AppShopRoute
+  '/app/today': typeof AppTodayRoute
+  '/app/tools': typeof AppToolsRouteWithChildren
+  '/app/': typeof AppIndexRoute
+  '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools/': typeof AppToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/app/me'
+    | '/app/read'
+    | '/app/shop'
+    | '/app/today'
+    | '/app/tools'
+    | '/app/'
+    | '/app/tools/$slug'
+    | '/app/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/app/me'
+    | '/app/read'
+    | '/app/shop'
+    | '/app/today'
+    | '/app'
+    | '/app/tools/$slug'
+    | '/app/tools'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/app/me'
+    | '/app/read'
+    | '/app/shop'
+    | '/app/today'
+    | '/app/tools'
+    | '/app/'
+    | '/app/tools/$slug'
+    | '/app/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +164,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tools': {
+      id: '/app/tools'
+      path: '/tools'
+      fullPath: '/app/tools'
+      preLoaderRoute: typeof AppToolsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/today': {
+      id: '/app/today'
+      path: '/today'
+      fullPath: '/app/today'
+      preLoaderRoute: typeof AppTodayRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/shop': {
+      id: '/app/shop'
+      path: '/shop'
+      fullPath: '/app/shop'
+      preLoaderRoute: typeof AppShopRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/read': {
+      id: '/app/read'
+      path: '/read'
+      fullPath: '/app/read'
+      preLoaderRoute: typeof AppReadRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/me': {
+      id: '/app/me'
+      path: '/me'
+      fullPath: '/app/me'
+      preLoaderRoute: typeof AppMeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tools/': {
+      id: '/app/tools/'
+      path: '/'
+      fullPath: '/app/tools/'
+      preLoaderRoute: typeof AppToolsIndexRouteImport
+      parentRoute: typeof AppToolsRoute
+    }
+    '/app/tools/$slug': {
+      id: '/app/tools/$slug'
+      path: '/$slug'
+      fullPath: '/app/tools/$slug'
+      preLoaderRoute: typeof AppToolsSlugRouteImport
+      parentRoute: typeof AppToolsRoute
+    }
   }
 }
 
+interface AppToolsRouteChildren {
+  AppToolsSlugRoute: typeof AppToolsSlugRoute
+  AppToolsIndexRoute: typeof AppToolsIndexRoute
+}
+
+const AppToolsRouteChildren: AppToolsRouteChildren = {
+  AppToolsSlugRoute: AppToolsSlugRoute,
+  AppToolsIndexRoute: AppToolsIndexRoute,
+}
+
+const AppToolsRouteWithChildren = AppToolsRoute._addFileChildren(
+  AppToolsRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppMeRoute: typeof AppMeRoute
+  AppReadRoute: typeof AppReadRoute
+  AppShopRoute: typeof AppShopRoute
+  AppTodayRoute: typeof AppTodayRoute
+  AppToolsRoute: typeof AppToolsRouteWithChildren
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppMeRoute: AppMeRoute,
+  AppReadRoute: AppReadRoute,
+  AppShopRoute: AppShopRoute,
+  AppTodayRoute: AppTodayRoute,
+  AppToolsRoute: AppToolsRouteWithChildren,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
