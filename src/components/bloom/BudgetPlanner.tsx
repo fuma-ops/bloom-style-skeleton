@@ -621,7 +621,7 @@ function DashboardTab(props: {
           <Input placeholder="Description (optional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="lg:col-span-2" />
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="lg:col-span-1" />
           <Select value={mood} onChange={(e) => setMood(e.target.value as MoodKey)} className="lg:col-span-1">
-            {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+            {MOODS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
           </Select>
         </div>
         <div className="mt-3 flex justify-end">
@@ -1136,7 +1136,7 @@ function ReportsTab(props: {
             </Select>
             <Select value={filterMood} onChange={(e) => setFilterMood(e.target.value)}>
               <option value="">All moods</option>
-              {MOODS.map(m => <option key={m.key} value={m.key}>{m.emoji} {m.label}</option>)}
+              {MOODS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
             </Select>
           </div>
         </div>
@@ -1157,7 +1157,7 @@ function ReportsTab(props: {
                       <td className="py-2 text-[#831843]">{t.date}</td>
                       <td className="text-[#831843]"><span className="mr-1">{c?.emoji}</span>{c?.label}</td>
                       <td className="text-[#9D5C7E]">{t.description || "—"}</td>
-                      <td><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}>{mood.emoji} {mood.label}</span></td>
+                      <td><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border ${mood.tone}`}><mood.Icon className="h-3 w-3" /> {mood.label}</span></td>
                       <td>{t.type === "income"
                         ? <span className="inline-flex items-center text-emerald-700 text-xs font-semibold"><ArrowUpRight className="h-3 w-3" /> Income</span>
                         : <span className="inline-flex items-center text-rose-700 text-xs font-semibold"><ArrowDownRight className="h-3 w-3" /> Expense</span>}</td>
