@@ -12,24 +12,31 @@ import {
   Sparkles,
   Heart,
 } from "lucide-react";
+import { PeriodSetup, type CycleSettings } from "./PeriodSetup";
 
-/* ---------- Sample cycle data (easy to edit) ---------- */
-const CYCLE = {
+/* ---------- Default cycle settings (easy to edit) ---------- */
+const DEFAULT_SETTINGS: CycleSettings = {
   lastPeriodStart: new Date(2026, 5, 1), // Jun 1, 2026
   periodLength: 5,
   cycleLength: 28,
+  trackerMode: "protection",
+  contraceptiveReminder: true,
+  contraceptiveMethod: "pill",
+  reminderHour: "21:00",
+  deviceNotifications: true,
 };
 
 type Phase = "period" | "follicular" | "fertile" | "ovulation" | "luteal" | null;
 
-function phaseForDay(date: Date): Phase {
+function phaseForDay(date: Date, s: CycleSettings): Phase {
   const ms = 1000 * 60 * 60 * 24;
-  const diff = Math.floor((date.getTime() - CYCLE.lastPeriodStart.getTime()) / ms);
-  const day = ((diff % CYCLE.cycleLength) + CYCLE.cycleLength) % CYCLE.cycleLength; // 0..27
-  if (day < CYCLE.periodLength) return "period";
-  if (day === 13) return "ovulation";
-  if (day >= 9 && day <= 15) return "fertile";
-  if (day < 13) return "follicular";
+  const diff = Math.floor((date.getTime() - s.lastPeriodStart.getTime()) / ms);
+  const day = ((diff % s.cycleLength) + s.cycleLength) % s.cycleLength;
+  const ovulationDay = s.cycleLength - 14; // luteal phase ~14 days
+  if (day < s.periodLength) return "period";
+  if (day === ovulationDay) return "ovulation";
+  if (day >= ovulationDay - 4 && day <= ovulationDay + 2) return "fertile";
+  if (day < ovulationDay) return "follicular";
   return "luteal";
 }
 
@@ -61,6 +68,8 @@ function sameDay(a: Date, b: Date) {
 
 export function CycleTracker() {
   const today = new Date(2026, 5, 4); // demo "today"
+  const [settings, setSettings] = useState<CycleSettings>(DEFAULT_SETTINGS);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [cursor, setCursor] = useState(new Date(2026, 5, 1));
   const [selected, setSelected] = useState<Date>(today);
   const [pillTaken, setPillTaken] = useState(true);
@@ -84,13 +93,23 @@ export function CycleTracker() {
   }
 
   // Compute next period & ovulation dates from today
-  const nextPeriod = useMemo(() => {
+  const { nextPeriod, daysToPeriod, ovulationDate, fertileStart, fertileEnd } = useMemo(() => {
     const ms = 1000 * 60 * 60 * 24;
-    const diff = Math.floor((today.getTime() - CYCLE.lastPeriodStart.getTime()) / ms);
-    const cyclesPassed = Math.floor(diff / CYCLE.cycleLength) + 1;
-    return new Date(CYCLE.lastPeriodStart.getTime() + cyclesPassed * CYCLE.cycleLength * ms);
-  }, []);
-  const daysToPeriod = Math.ceil((nextPeriod.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.floor((today.getTime() - settings.lastPeriodStart.getTime()) / ms);
+    const cyclesPassed = Math.floor(diff / settings.cycleLength) + 1;
+    const np = new Date(settings.lastPeriodStart.getTime() + cyclesPassed * settings.cycleLength * ms);
+    const dtp = Math.ceil((np.getTime() - today.getTime()) / ms);
+    const ovDayOffset = settings.cycleLength - 14;
+    // Find current/next cycle ovulation date
+    const currentCycleStart = new Date(settings.lastPeriodStart.getTime() + Math.floor(diff / settings.cycleLength) * settings.cycleLength * ms);
+    let ov = new Date(currentCycleStart.getTime() + ovDayOffset * ms);
+    if (ov.getTime() < today.getTime()) ov = new Date(np.getTime() + ovDayOffset * ms);
+    const fs = new Date(ov.getTime() - 4 * ms);
+    const fe = new Date(ov.getTime() + 2 * ms);
+    return { nextPeriod: np, daysToPeriod: dtp, ovulationDate: ov, fertileStart: fs, fertileEnd: fe };
+  }, [settings]);
+
+  const pillLabel = settings.contraceptiveMethod.charAt(0).toUpperCase() + settings.contraceptiveMethod.slice(1);
 
   return (
     <div className="relative">
@@ -121,7 +140,7 @@ export function CycleTracker() {
         <div className="lg:col-span-2 rounded-[2rem] bg-white/85 p-5 sm:p-7 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-script text-5xl text-hotpink">Cycle ✿</h2>
-            <button className="inline-flex items-center gap-1.5 rounded-full bg-hotpink px-4 py-2 text-sm font-semibold text-white shadow-md shadow-hotpink/30 transition hover:scale-[1.03] hover:bg-magenta">
+            <button onClick={() => setSetupOpen(true)} className="inline-flex items-center gap-1.5 rounded-full bg-hotpink px-4 py-2 text-sm font-semibold text-white shadow-md shadow-hotpink/30 transition hover:scale-[1.03] hover:bg-magenta">
               <Plus className="h-4 w-4" /> Log & Settings
             </button>
           </div>
@@ -131,7 +150,7 @@ export function CycleTracker() {
             <button onClick={() => shift(-1)} className="grid h-9 w-9 place-items-center rounded-full bg-blush text-hotpink transition hover:bg-petal">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <div className="min-w-[140px] text-center font-script text-3xl text-rose">
+            <div className="min-w-[140px] text-center font-script text-3xl text-hotpink">
               {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
             </div>
             <button onClick={() => shift(1)} className="grid h-9 w-9 place-items-center rounded-full bg-blush text-hotpink transition hover:bg-petal">
@@ -151,10 +170,11 @@ export function CycleTracker() {
           >
             {days.map((d, i) => {
               if (!d) return <div key={i} />;
-              const phase = phaseForDay(d);
+              const phase = phaseForDay(d, settings);
               const isFuture = d.getTime() > today.getTime();
               const isSelected = sameDay(d, selected);
               const isToday = sameDay(d, today);
+              const emphasizeFertile = settings.trackerMode === "conception" && (phase === "fertile" || phase === "ovulation");
               const meta = phase ? PHASE_META[phase] : null;
               const Icon = meta?.Icon;
               const isPeak = phase === "ovulation";
@@ -168,11 +188,12 @@ export function CycleTracker() {
                     "hover:scale-105",
                     isSelected ? "scale-105 ring-2 ring-hotpink shadow-md" : "",
                     isFuture && phase === "period"
-                      ? "border-2 border-dashed border-hotpink/60 bg-pink-50/50 text-hotpink"
+                      ? "border-2 border-dashed border-hotpink/70 bg-pink-50 text-hotpink"
                       : isFuture
-                        ? "border border-dashed border-rose/30 text-rose/60 bg-white/40"
+                        ? "border border-dashed border-rose/40 text-rose bg-white/60"
                         : meta?.color ?? "bg-white text-rose",
                     isPeak ? "ring-2 ring-rose-400 animate-bloom-pulse" : "",
+                    emphasizeFertile ? "ring-2 ring-magenta/60" : "",
                     isToday ? "outline outline-2 outline-offset-2 outline-hotpink/60" : "",
                   ].join(" ")}
                 >
@@ -201,18 +222,20 @@ export function CycleTracker() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1">
           {/* Next period */}
           <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "60ms" }}>
-            <p className="text-[10px] font-bold tracking-widest text-rose/70">NEXT PERIOD</p>
+            <p className="text-[10px] font-bold tracking-widest text-rose">NEXT PERIOD</p>
             <p className="mt-1 font-script text-4xl text-hotpink">
               {nextPeriod.toLocaleDateString("en", { weekday: "short" })}
             </p>
-            <p className="text-sm text-rose/80">In {daysToPeriod} days · {MONTHS[nextPeriod.getMonth()]} {nextPeriod.getDate()}</p>
+            <p className="text-sm text-rose">In {daysToPeriod} days · {MONTHS[nextPeriod.getMonth()]} {nextPeriod.getDate()}</p>
           </div>
 
           {/* Ovulation */}
           <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in" style={{ animationDelay: "120ms" }}>
-            <p className="text-[10px] font-bold tracking-widest text-rose/70">OVULATION</p>
-            <p className="mt-1 font-script text-4xl text-hotpink">Thu</p>
-            <p className="text-sm text-rose/80">Fertile window · Jun 10–16</p>
+            <p className="text-[10px] font-bold tracking-widest text-rose">OVULATION</p>
+            <p className="mt-1 font-script text-4xl text-hotpink">{ovulationDate.toLocaleDateString("en", { weekday: "short" })}</p>
+            <p className="text-sm text-rose">
+              Fertile window · {MONTHS[fertileStart.getMonth()].slice(0,3)} {fertileStart.getDate()}–{fertileEnd.getDate()}
+            </p>
           </div>
 
           {/* Daily pill */}
@@ -223,8 +246,10 @@ export function CycleTracker() {
                   <Pill className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="font-script text-2xl text-hotpink leading-none">Daily Pill</p>
-                  <p className="text-xs text-rose/70 mt-0.5">Reminder · 21:00</p>
+                  <p className="font-script text-2xl text-hotpink leading-none">Daily {pillLabel}</p>
+                  <p className="text-xs text-rose mt-0.5">
+                    {settings.contraceptiveReminder ? `Reminder · ${settings.reminderHour}` : "Reminder off"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -250,7 +275,7 @@ export function CycleTracker() {
 
           {/* Mood */}
           <div className="rounded-[2rem] bg-white/85 p-5 shadow-xl shadow-rose/10 backdrop-blur animate-scale-in sm:col-span-2 lg:col-span-1" style={{ animationDelay: "240ms" }}>
-            <p className="text-[10px] font-bold tracking-widest text-rose/70">
+            <p className="text-[10px] font-bold tracking-widest text-rose">
               {today.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
             </p>
             <p className="font-script text-3xl text-hotpink mt-1">how is your mood today?</p>
@@ -296,11 +321,18 @@ export function CycleTracker() {
                 <Sparkles className="h-3 w-3" /> FOR YOU
               </div>
               <p className="font-script text-2xl text-hotpink">{p.t}</p>
-              <p className="text-sm text-rose/80 mt-1">{p.d}</p>
+              <p className="text-sm text-rose mt-1">{p.d}</p>
             </div>
           ))}
         </div>
       </div>
+
+      <PeriodSetup
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+        initial={settings}
+        onSave={(s) => setSettings(s)}
+      />
     </div>
   );
 }
