@@ -86,29 +86,29 @@ function TodayPage() {
 
       {/* GREETING HEADER */}
       <section
-        className="relative overflow-hidden rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.45)] stagger"
+        className="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] border border-petal/60 shadow-[0_20px_50px_-20px_oklch(0.6_0.27_350/0.45)] stagger"
         style={{ animationDelay: "0ms" }}
       >
         <img src="/images/today-hero.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/40 to-transparent" />
-        <div className="relative px-6 py-10 sm:px-12 sm:py-14 max-w-xl">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/85 backdrop-blur px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-hotpink border border-petal/60">
+        <div className="relative px-4 py-5 sm:px-12 sm:py-14 max-w-xl">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/85 backdrop-blur px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-hotpink border border-petal/60">
             <HelloIcon className="h-3 w-3" strokeWidth={2} /> {today}
           </div>
-          <h1 className="mt-3 font-script text-5xl sm:text-6xl text-hotpink leading-none drop-shadow-[0_2px_6px_oklch(1_0_0/0.5)]">
+          <h1 className="mt-2 sm:mt-3 font-script text-3xl sm:text-6xl text-hotpink leading-none drop-shadow-[0_2px_6px_oklch(1_0_0/0.5)]">
             {hello}, {NAME}
           </h1>
-          <p className="mt-4 text-base sm:text-lg text-rose italic leading-snug">
+          <p className="mt-2 sm:mt-4 text-xs sm:text-lg text-rose italic leading-snug">
             "You are blooming at your own pace."
           </p>
-          <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-hotpink/10 text-hotpink text-xs font-semibold px-3 py-1 border border-hotpink/20">
+          <div className="mt-2 sm:mt-4 inline-flex items-center gap-1.5 rounded-full bg-hotpink/10 text-hotpink text-[11px] sm:text-xs font-semibold px-2.5 py-0.5 sm:px-3 sm:py-1 border border-hotpink/20">
             <Flame className="h-3.5 w-3.5" strokeWidth={1.8} /> {streak} days blooming
           </div>
         </div>
       </section>
 
       {/* MOOD */}
-      <section className="mt-8 stagger" style={{ animationDelay: "80ms" }}>
+      <section className="mt-5 sm:mt-8 stagger" style={{ animationDelay: "80ms" }}>
         <SectionTitle>How are you feeling today?</SectionTitle>
         <div className="rounded-3xl bg-white/85 backdrop-blur p-4 sm:p-5 border border-petal/50 shadow-[0_10px_24px_-14px_oklch(0.7_0.18_350/0.3)]">
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 sm:gap-3">
@@ -151,7 +151,7 @@ function TodayPage() {
       </section>
 
       {/* AT A GLANCE */}
-      <section className="mt-8 stagger" style={{ animationDelay: "160ms" }}>
+      <section className="mt-6 sm:mt-8 stagger" style={{ animationDelay: "160ms" }}>
         <SectionTitle hint="today">Today at a glance</SectionTitle>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <GlanceCard Icon={Flower2} label="Cycle" value={`Day ${cycleDay}`} note="Bloom phase — you're radiant" tone="from-hotpink to-magenta" />
@@ -162,9 +162,9 @@ function TodayPage() {
       </section>
 
       {/* QUICK ACTIONS */}
-      <section className="mt-8 stagger" style={{ animationDelay: "240ms" }}>
+      <section className="mt-6 sm:mt-8 stagger" style={{ animationDelay: "240ms" }}>
         <SectionTitle>Quick actions</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3">
           <QuickAction to="/app/today" Icon={Smile} label="Log mood" />
           <QuickAction to="/budget" Icon={Wallet} label="Add expense" />
           <QuickAction to="/app/tools/$slug" params={{ slug: "diary" }} Icon={PencilLine} label="Write in diary" />
@@ -173,7 +173,7 @@ function TodayPage() {
       </section>
 
       {/* RITUAL */}
-      <section className="mt-8 stagger" style={{ animationDelay: "320ms" }}>
+      <section className="mt-6 sm:mt-8 stagger" style={{ animationDelay: "320ms" }}>
         <SectionTitle>Today's ritual</SectionTitle>
         <div className="rounded-3xl border border-petal/50 bg-gradient-to-br from-white/90 to-blush/80 backdrop-blur p-5 sm:p-6 shadow-[0_10px_24px_-14px_oklch(0.7_0.18_350/0.3)] flex items-start gap-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-hotpink to-magenta text-white shadow-md shadow-hotpink/30">
@@ -189,7 +189,7 @@ function TodayPage() {
       </section>
 
       {/* FOR YOU READ */}
-      <section className="mt-8 stagger" style={{ animationDelay: "400ms" }}>
+      <section className="mt-6 sm:mt-8 stagger" style={{ animationDelay: "400ms" }}>
         <SectionTitle hint="picked for you">Today's read</SectionTitle>
         <Link
           to="/app/read"
@@ -217,7 +217,7 @@ function TodayPage() {
       </section>
 
       {/* STREAK */}
-      <section className="mt-8 mb-4 stagger" style={{ animationDelay: "480ms" }}>
+      <section className="mt-6 sm:mt-8 mb-4 stagger" style={{ animationDelay: "480ms" }}>
         <div className="rounded-3xl bg-gradient-to-r from-hotpink/10 via-petal/40 to-hotpink/10 border border-hotpink/15 p-5 text-center">
           <p className="font-script text-3xl text-hotpink leading-none">{streak} days blooming ✿</p>
           <p className="mt-1 text-xs text-rose/70">Slow and steady — that's how flowers grow.</p>
@@ -312,12 +312,12 @@ function QuickAction(props: QuickActionProps) {
   return (
     <Link
       {...linkProps}
-      className="group flex flex-col items-center justify-center gap-2 rounded-3xl bg-white/85 backdrop-blur p-4 sm:p-5 border border-petal/50 shadow-[0_8px_24px_-14px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_oklch(0.7_0.22_350/0.45)]"
+      className="group flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-2xl sm:rounded-3xl bg-white/85 backdrop-blur p-2.5 sm:p-5 border border-petal/50 shadow-[0_8px_24px_-14px_oklch(0.7_0.18_350/0.3)] transition hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_oklch(0.7_0.22_350/0.45)]"
     >
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-hotpink to-magenta text-white shadow-md shadow-hotpink/30 transition group-hover:scale-105">
-        <Icon className="h-5 w-5" strokeWidth={1.6} />
+      <span className="grid h-9 w-9 sm:h-12 sm:w-12 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-hotpink to-magenta text-white shadow-md shadow-hotpink/30 transition group-hover:scale-105">
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.6} />
       </span>
-      <span className="text-xs font-semibold text-rose text-center">{label}</span>
+      <span className="text-[10px] sm:text-xs font-semibold text-rose text-center leading-tight">{label}</span>
       <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-hotpink opacity-0 group-hover:opacity-100 transition">
         Open <ArrowRight className="h-2.5 w-2.5" strokeWidth={2} />
       </span>
