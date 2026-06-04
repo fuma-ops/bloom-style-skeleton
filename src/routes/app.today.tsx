@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Sparkles, Flower2, Pill, Wallet, Footprints, Heart, BookHeart,
-  PencilLine, Plus, ArrowRight, Clock, Flame, Sun, Moon, Smile,
+  Sparkles, Flower2, Pill, Wallet, Footprints, Heart,
+  PencilLine, ArrowRight, Clock, Flame, Sun, Moon, Smile,
   Cloud, CloudRain, Battery, Droplet, Activity,
 } from "lucide-react";
 import { BloomBubbles } from "@/components/bloom/BloomBubbles";
