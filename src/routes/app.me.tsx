@@ -4,7 +4,7 @@ import {
   Pencil, Sparkles, Droplet, Wallet, Footprints, Flame,
   Heart, BookOpen, Flower2, UtensilsCrossed, Target, ChevronRight,
   User, Crown, Bell, Settings as SettingsIcon, Shield, LifeBuoy, LogOut,
-  Award, ArrowRight,
+  ArrowRight,
 } from "lucide-react";
 import { BloomBubbles } from "@/components/bloom/BloomBubbles";
 
