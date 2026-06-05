@@ -22,7 +22,7 @@ export function AppShell() {
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <BloomBackground />
 
       {/* Desktop / Tablet sidebar */}
@@ -61,8 +61,8 @@ export function AppShell() {
       </aside>
 
       {/* Main */}
-      <main className="min-h-screen pb-24 md:ml-20 md:pb-10 lg:ml-60">
-        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
+      <main className="min-h-screen pb-24 md:ml-20 md:pb-10 lg:ml-60 overflow-x-hidden">
+        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6 min-w-0">
           <Outlet />
         </div>
       </main>
