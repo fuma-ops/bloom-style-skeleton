@@ -305,3 +305,25 @@ function Sunburst() {
     </svg>
   );
 }
+
+function FlowerShape() {
+  // 6-petal flower silhouette with soft gradient + glossy highlight
+  return (
+    <svg viewBox="0 0 100 100" className="flower-bg absolute inset-0 h-full w-full" aria-hidden>
+      <defs>
+        <radialGradient id="petal-grad" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="oklch(0.92 0.12 350)" />
+          <stop offset="55%" stopColor="oklch(0.72 0.25 350)" />
+          <stop offset="100%" stopColor="oklch(0.58 0.28 0)" />
+        </radialGradient>
+      </defs>
+      <g fill="url(#petal-grad)">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <ellipse key={i} cx="50" cy="22" rx="16" ry="22" transform={`rotate(${i * 60} 50 50)`} />
+        ))}
+      </g>
+      <circle cx="50" cy="50" r="18" fill="oklch(0.78 0.22 350)" />
+      <ellipse cx="42" cy="42" rx="6" ry="3" fill="oklch(1 0 0 / 0.55)" />
+    </svg>
+  );
+}
