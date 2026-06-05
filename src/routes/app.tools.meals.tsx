@@ -802,6 +802,8 @@ function PrepStep({ n, title, items }: { n: number; title: string; items: string
 function ConservationTab({ freezer, setFreezer }: any) {
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
+  const [fname, setFname] = useState("");
+  const [fdate, setFdate] = useState("");
   const today = new Date();
 
   const check = (n: string, d: string) => {
@@ -815,11 +817,12 @@ function ConservationTab({ freezer, setFreezer }: any) {
       <Glass className="p-4">
         <p className="font-script text-2xl text-hotpink">Still good?</p>
         <p className="text-xs text-rose/70 mt-0.5">Enter a dish + when you cooked it.</p>
-        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. lentil stew"
-            className="rounded-full bg-white/90 px-3 py-2 text-sm border border-petal/60 outline-none focus:ring-2 focus:ring-hotpink/30" />
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-            className="rounded-full bg-white/90 px-3 py-2 text-sm border border-petal/60" />
+            className="w-full min-w-0 flex-1 rounded-full bg-white/90 px-3 py-2 text-sm text-rose border border-petal/60 outline-none focus:ring-2 focus:ring-hotpink/30 placeholder:text-rose/40" />
+          <div className="w-full sm:w-40 shrink-0">
+            <CuteDatePicker value={date} onChange={setDate} placeholder="When cooked" />
+          </div>
         </div>
         {name && date && (() => {
           const r = check(name, date);
@@ -838,21 +841,24 @@ function ConservationTab({ freezer, setFreezer }: any) {
 
       <Glass className="p-4">
         <p className="font-script text-2xl text-hotpink">Freezer vault</p>
-        <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="dish name"
-            className="rounded-full bg-white/90 px-3 py-2 text-sm border border-petal/60" />
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-            className="rounded-full bg-white/90 px-3 py-2 text-sm border border-petal/60" />
-          <PinkBtn onClick={() => { if (name && date) { setFreezer([...freezer, { name, date }]); setName(""); setDate(""); } }}>
-            <Plus className="h-4 w-4" />
-          </PinkBtn>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <input value={fname} onChange={(e) => setFname(e.target.value)} placeholder="dish name"
+            className="w-full min-w-0 flex-1 rounded-full bg-white/90 px-3 py-2 text-sm text-rose border border-petal/60 outline-none focus:ring-2 focus:ring-hotpink/30 placeholder:text-rose/40" />
+          <div className="flex gap-2 sm:shrink-0">
+            <div className="flex-1 sm:w-36">
+              <CuteDatePicker value={fdate} onChange={setFdate} placeholder="Frozen on" />
+            </div>
+            <PinkBtn onClick={() => { if (fname && fdate) { setFreezer([...freezer, { name: fname, date: fdate }]); setFname(""); setFdate(""); } }}>
+              <Plus className="h-4 w-4" />
+            </PinkBtn>
+          </div>
         </div>
         <ul className="mt-3 space-y-1.5">
           {freezer.length === 0 && <li className="text-xs text-rose/60">No frozen dishes yet.</li>}
           {freezer.map((f: any, i: number) => (
-            <li key={i} className="flex items-center justify-between rounded-xl bg-blush/60 px-3 py-1.5 text-sm text-rose">
-              <span>❄ {f.name} <span className="text-xs text-rose/60">— {f.date}</span></span>
-              <button onClick={() => setFreezer(freezer.filter((_: any, j: number) => j !== i))} className="text-rose/60 hover:text-hotpink">
+            <li key={i} className="flex items-center justify-between gap-2 rounded-xl bg-blush/60 px-3 py-1.5 text-sm text-rose min-w-0">
+              <span className="truncate min-w-0">❄ {f.name} <span className="text-xs text-rose/60">— {f.date}</span></span>
+              <button onClick={() => setFreezer(freezer.filter((_: any, j: number) => j !== i))} className="text-rose/60 hover:text-hotpink shrink-0">
                 <X className="h-3.5 w-3.5" />
               </button>
             </li>
