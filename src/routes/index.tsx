@@ -49,52 +49,52 @@ function Landing() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-[3rem] p-6 shadow-[0_30px_80px_-30px_oklch(0.6_0.25_0/0.45)] sm:p-10 md:p-14"
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6">
+        {/* Hero — compact, centered, lifted on mobile */}
+        <section className="relative overflow-hidden rounded-[2rem] sm:rounded-[3rem] p-5 sm:p-10 md:p-14 shadow-[0_30px_80px_-30px_oklch(0.6_0.25_0/0.45)]"
           style={{ background: "linear-gradient(135deg, oklch(0.94 0.08 350) 0%, oklch(0.88 0.14 350) 50%, oklch(0.92 0.1 10) 100%)" }}>
-          {/* sunburst */}
           <div className="pointer-events-none absolute -right-10 -top-10 hidden h-64 w-64 opacity-60 md:block" aria-hidden>
             <Sunburst />
           </div>
-          <Sparkles className="absolute left-6 top-8 h-6 w-6 animate-bloom-sparkle text-hotpink" aria-hidden />
-          <Sparkles className="absolute left-1/3 top-12 h-5 w-5 animate-bloom-sparkle text-magenta" style={{ animationDelay: "0.6s" }} aria-hidden />
-          <Star className="absolute right-10 bottom-10 h-5 w-5 animate-bloom-sparkle fill-hotpink text-hotpink" style={{ animationDelay: "1.2s" }} aria-hidden />
-          <Heart className="absolute bottom-8 left-6 h-5 w-5 animate-bloom-float fill-hotpink text-hotpink" aria-hidden />
+          <Sparkles className="absolute left-4 top-5 h-4 w-4 sm:h-6 sm:w-6 animate-bloom-sparkle text-hotpink" aria-hidden />
+          <Sparkles className="absolute right-6 top-8 h-4 w-4 animate-bloom-sparkle text-magenta" style={{ animationDelay: "0.6s" }} aria-hidden />
+          <Star className="absolute right-8 bottom-8 h-4 w-4 animate-bloom-sparkle fill-hotpink text-hotpink" style={{ animationDelay: "1.2s" }} aria-hidden />
+          <Heart className="absolute bottom-6 left-5 h-4 w-4 animate-bloom-float fill-hotpink text-hotpink" aria-hidden />
 
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div className="relative mx-auto h-[360px] w-[360px] sm:h-[460px] sm:w-[460px]">
-              <div className="absolute inset-0 -m-6 rounded-[45%_55%_60%_40%/55%_45%_50%_50%] bg-hotpink/40 blur-2xl animate-bloom-pulse" aria-hidden />
-              <SparkleRing radius={200} />
-              <div className="animate-bloom-float">
+          {/* Mobile/tablet: stacked & centered. Desktop: 2-col */}
+          <div className="flex flex-col items-center gap-4 text-center md:grid md:grid-cols-2 md:items-center md:gap-10 md:text-left">
+            <div className="relative mx-auto h-[180px] w-[180px] sm:h-[240px] sm:w-[240px] md:h-[460px] md:w-[460px] md:mt-0">
+              <div className="absolute inset-0 -m-4 rounded-[45%_55%_60%_40%/55%_45%_50%_50%] bg-hotpink/40 blur-2xl animate-bloom-pulse" aria-hidden />
+              <div className="hidden md:block"><SparkleRing radius={200} /></div>
+              <div className="animate-bloom-float h-full w-full">
                 <img
                   src="/images/hero-girl.png"
                   alt="A joyful girl with vibrant pink hair smiling"
                   width={520}
                   height={520}
-                  className="relative h-[320px] w-[320px] object-cover shadow-2xl sm:h-[420px] sm:w-[420px] mx-auto mt-5"
+                  className="relative h-full w-full object-cover shadow-2xl mx-auto md:h-[420px] md:w-[420px] md:mt-5"
                   style={{ borderRadius: "55% 45% 50% 50% / 60% 55% 45% 40%" }}
                 />
               </div>
             </div>
 
-            <div>
-              <h1 className="font-script text-8xl leading-none text-bloom-gradient drop-shadow-[0_4px_20px_oklch(0.7_0.25_0/0.25)] sm:text-9xl">Bloom</h1>
-              <p className="mt-3 font-script text-3xl text-magenta">your softest era starts here</p>
-              <p className="mt-6 max-w-md text-base font-medium text-magenta/90">
-                The cutest little app packed with tools for the modern girl — budgets, yoga, steps, diaries, cycles & feel-good reads. All in pink. <span className="inline-block">💕</span>
+            <div className="flex flex-col items-center md:items-start">
+              <h1 className="font-script text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none text-bloom-gradient drop-shadow-[0_4px_20px_oklch(0.7_0.25_0/0.25)]">Bloom</h1>
+              <p className="mt-2 font-script text-xl sm:text-2xl md:text-3xl text-magenta">your softest era starts here</p>
+              <p className="mt-3 max-w-xs sm:max-w-sm md:max-w-md text-sm sm:text-base font-medium text-magenta/90">
+                Budgets, yoga, cycle, diary & feel‑good reads — all in one soft little app.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 md:justify-start">
                 <Link
                   to="/app/tools"
-                  className="hover-scale inline-flex items-center gap-2 rounded-full px-6 py-3 font-semibold text-white shadow-lg shadow-hotpink/40 transition"
+                  className="hover-scale inline-flex items-center gap-2 rounded-full px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-lg shadow-hotpink/40 transition"
                   style={{ background: "linear-gradient(135deg, oklch(0.7 0.25 350), oklch(0.6 0.28 0))" }}
                 >
                   Start Blooming <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   to="/app/today"
-                  className="hover-scale inline-flex items-center rounded-full border-2 border-white bg-white/90 px-6 py-3 font-semibold text-hotpink transition hover:bg-white"
+                  className="hover-scale inline-flex items-center rounded-full border-2 border-white bg-white/90 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold text-hotpink transition hover:bg-white"
                 >
                   Open App
                 </Link>
@@ -103,25 +103,45 @@ function Landing() {
           </div>
         </section>
 
-        {/* Tools strip */}
-        <section className="mt-8 animate-fade-in rounded-[2.5rem] bg-white/85 p-6 shadow-xl shadow-rose/10 backdrop-blur">
-          <div className="grid grid-cols-3 gap-4 md:grid-cols-6">
-            {TOOLS.map((t) => (
+        {/* Tools strip — animated flower buttons */}
+        <section className="mt-5 sm:mt-8 animate-fade-in rounded-[2rem] sm:rounded-[2.5rem] bg-white/85 p-5 sm:p-8 shadow-xl shadow-rose/10 backdrop-blur">
+          <div className="mb-4 sm:mb-6 text-center">
+            <p className="font-script text-2xl sm:text-3xl text-bloom-gradient leading-none">your bloom kit</p>
+            <p className="mt-1 text-xs sm:text-sm font-medium text-magenta/80">Everything you need in one soft little app ✿</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:gap-5 md:grid-cols-6">
+            {TOOLS.map((t, i) => (
               <Link
                 key={t.slug}
                 to="/app/tools/$slug"
                 params={{ slug: t.slug }}
-                className="group flex flex-col items-center gap-2 text-center transition hover:-translate-y-1"
+                className="bloom-flower-item group flex flex-col items-center gap-1.5 sm:gap-2 text-center"
+                style={{ animationDelay: `${i * 80}ms` }}
               >
-                <span className="grid h-14 w-14 place-items-center rounded-full text-white shadow-lg shadow-hotpink/30 transition group-hover:scale-110"
-                  style={{ background: "linear-gradient(135deg, oklch(0.72 0.24 350), oklch(0.58 0.28 0))" }}>
-                  <t.icon className="h-6 w-6" />
+                <span className="bloom-flower relative grid h-16 w-16 sm:h-20 sm:w-20 place-items-center text-white transition-transform duration-500 group-hover:scale-110 group-active:scale-95">
+                  <FlowerShape />
+                  <t.icon className="relative z-10 h-6 w-6 sm:h-7 sm:w-7 drop-shadow-[0_2px_3px_oklch(0.4_0.22_350/0.45)]" strokeWidth={1.8} />
                 </span>
-                <span className="text-xs font-bold text-magenta">{t.label}</span>
+                <span className="text-[11px] sm:text-xs font-bold text-magenta leading-tight">{t.label}</span>
               </Link>
             ))}
           </div>
         </section>
+
+        <style>{`
+          @keyframes bloom-flower-bob {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-5px) rotate(3deg); }
+          }
+          @keyframes bloom-flower-pop {
+            0% { opacity: 0; transform: scale(0.6) translateY(12px); }
+            70% { opacity: 1; transform: scale(1.06) translateY(-2px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+          }
+          .bloom-flower-item { opacity: 0; animation: bloom-flower-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+          .bloom-flower > svg.flower-bg { animation: bloom-flower-bob 5s ease-in-out infinite; }
+          .bloom-flower-item:hover .flower-bg { filter: drop-shadow(0 8px 18px oklch(0.65 0.28 350 / 0.55)); }
+        `}</style>
 
         {/* Features section */}
         <section id="favorites" className="mt-20">
@@ -282,6 +302,28 @@ function Sunburst() {
       </g>
       <circle cx="100" cy="100" r="14" fill="oklch(0.7 0.22 0)" />
       <path d="M100 92 l8 10 -8 10 -8 -10z" fill="oklch(0.92 0.06 350)" />
+    </svg>
+  );
+}
+
+function FlowerShape() {
+  // 6-petal flower silhouette with soft gradient + glossy highlight
+  return (
+    <svg viewBox="0 0 100 100" className="flower-bg absolute inset-0 h-full w-full" aria-hidden>
+      <defs>
+        <radialGradient id="petal-grad" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="oklch(0.92 0.12 350)" />
+          <stop offset="55%" stopColor="oklch(0.72 0.25 350)" />
+          <stop offset="100%" stopColor="oklch(0.58 0.28 0)" />
+        </radialGradient>
+      </defs>
+      <g fill="url(#petal-grad)">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <ellipse key={i} cx="50" cy="22" rx="16" ry="22" transform={`rotate(${i * 60} 50 50)`} />
+        ))}
+      </g>
+      <circle cx="50" cy="50" r="18" fill="oklch(0.78 0.22 350)" />
+      <ellipse cx="42" cy="42" rx="6" ry="3" fill="oklch(1 0 0 / 0.55)" />
     </svg>
   );
 }
