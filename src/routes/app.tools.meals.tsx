@@ -22,6 +22,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { BloomBubbles } from "@/components/bloom/BloomBubbles";
+import { CuteDatePicker } from "@/components/bloom/CuteDatePicker";
 import {
   RECIPES,
   PANTRY,
@@ -272,7 +273,7 @@ function MealsPage() {
   };
 
   return (
-    <div className="relative animate-fade-in">
+    <div className="relative animate-fade-in max-w-full overflow-x-hidden">
       <BloomBubbles count={10} />
 
       <Link to="/app/tools" className="mb-3 inline-flex items-center gap-1 text-sm text-rose hover:text-hotpink">
@@ -289,26 +290,36 @@ function MealsPage() {
           <div className="text-xs text-rose/70 hidden sm:block">phase: <b className="text-hotpink">{phase}</b></div>
         </div>
 
-        {/* Pill tabs */}
-        <nav className="mt-3 -mx-3 px-3 flex gap-2 overflow-x-auto no-scrollbar">
+        {/* Pill tabs — horizontally scrollable, last pill always reachable */}
+        <nav
+          className="mt-3 -mx-3 px-3 pr-6 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth snap-x"
+          style={{ scrollPaddingRight: "1.5rem", scrollPaddingLeft: "0.75rem" }}
+        >
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
+                onClick={(e) => {
+                  setTab(t.key);
+                  (e.currentTarget as HTMLElement).scrollIntoView({
+                    behavior: "smooth", inline: "nearest", block: "nearest",
+                  });
+                }}
                 className={[
-                  "shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition border",
+                  "shrink-0 snap-start inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition border whitespace-nowrap",
                   active
                     ? "bg-hotpink text-white border-hotpink shadow shadow-hotpink/30"
                     : "bg-white/80 text-rose border-petal/60 hover:bg-blush",
                 ].join(" ")}
               >
-                <t.icon className="h-4 w-4" strokeWidth={1.8} />
+                <t.icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
                 {t.label}
               </button>
             );
           })}
+          {/* trailing spacer so the last pill is fully reachable */}
+          <span className="shrink-0 w-2" aria-hidden />
         </nav>
       </header>
 
