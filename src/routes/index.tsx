@@ -3,6 +3,81 @@ import { ArrowRight, Heart, Instagram, Music2, Sparkles, Star, Quote } from "luc
 import { BloomLogo } from "@/components/bloom/BloomLogo";
 import { TOOLS } from "@/components/bloom/tools";
 import { SparkleRing } from "@/components/bloom/SparkleRing";
+import { useEffect, useMemo, useState } from "react";
+
+function SlowBubbles({ count = 14 }: { count?: number }) {
+  const bubbles = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => {
+        const size = 40 + Math.round(Math.random() * 130);
+        const left = Math.round(Math.random() * 100);
+        const duration = 38 + Math.round(Math.random() * 30); // very slow 38-68s
+        const delay = -Math.round(Math.random() * duration);
+        const drift = `${Math.round(Math.random() * 30 - 15)}px`;
+        const opacity = 0.25 + Math.random() * 0.3;
+        return { i, size, left, delay, duration, drift, opacity };
+      }),
+    [count],
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden" aria-hidden>
+      {bubbles.map((b) => (
+        <span
+          key={b.i}
+          className="absolute bottom-[-180px] rounded-full bloom-bubble bloom-slow-bubble"
+          style={{
+            width: b.size,
+            height: b.size,
+            left: `${b.left}%`,
+            animationDelay: `${b.delay}s`,
+            animationDuration: `${b.duration}s`,
+            // @ts-expect-error custom var
+            "--drift": b.drift,
+            "--o": b.opacity,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BokehSparkles({ count = 18 }: { count?: number }) {
+  const items = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => {
+        const size = 4 + Math.round(Math.random() * 7);
+        const top = Math.round(Math.random() * 100);
+        const left = Math.round(Math.random() * 100);
+        const duration = 6 + Math.round(Math.random() * 8);
+        const delay = -Math.round(Math.random() * duration);
+        const opacity = 0.4 + Math.random() * 0.4;
+        return { i, size, top, left, duration, delay, opacity };
+      }),
+    [count],
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden" aria-hidden>
+      {items.map((s) => (
+        <span
+          key={s.i}
+          className="absolute rounded-full bg-white bloom-bokeh"
+          style={{
+            width: s.size,
+            height: s.size,
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            animationDuration: `${s.duration}s`,
+            animationDelay: `${s.delay}s`,
+            boxShadow: "0 0 10px 2px oklch(0.85 0.2 350 / 0.7)",
+            // @ts-expect-error custom var
+            "--o": s.opacity,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,9 +92,20 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  // light parallax for sparkles
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="relative min-h-screen overflow-hidden bloom-aurora">
-      {/* floating blobs */}
+    <div className="relative min-h-screen overflow-hidden bloom-breathe">
+      {/* gentle living background: slow bubbles + soft bokeh sparkles */}
+      <SlowBubbles count={14} />
+      <BokehSparkles count={18} />
+      {/* floating soft blobs */}
       <div className="pointer-events-none absolute -left-32 top-40 -z-0 h-80 w-80 rounded-full bg-hotpink/20 blur-3xl animate-bloom-pulse" aria-hidden />
       <div className="pointer-events-none absolute -right-32 top-[60%] -z-0 h-96 w-96 rounded-full bg-rose/30 blur-3xl animate-bloom-pulse" style={{ animationDelay: "1.5s" }} aria-hidden />
 
@@ -60,11 +146,17 @@ function Landing() {
           <Sparkles className="absolute right-6 top-8 h-4 w-4 animate-bloom-sparkle text-magenta" style={{ animationDelay: "0.6s" }} aria-hidden />
           <Star className="absolute right-8 bottom-8 h-4 w-4 animate-bloom-sparkle fill-hotpink text-hotpink" style={{ animationDelay: "1.2s" }} aria-hidden />
           <Heart className="absolute bottom-6 left-5 h-4 w-4 animate-bloom-float fill-hotpink text-hotpink" aria-hidden />
+          {/* extra gentle twinkles near hero with light parallax */}
+          <Sparkles className="absolute left-[20%] top-[18%] h-3 w-3 animate-bloom-sparkle text-white/90" style={{ animationDelay: "0.3s", transform: `translateY(${scrollY * -0.06}px)` }} aria-hidden />
+          <Sparkles className="absolute right-[18%] top-[28%] h-3 w-3 animate-bloom-sparkle text-white/80" style={{ animationDelay: "1.4s", transform: `translateY(${scrollY * -0.04}px)` }} aria-hidden />
+          <Sparkles className="absolute left-[12%] bottom-[28%] h-3 w-3 animate-bloom-sparkle text-white/80" style={{ animationDelay: "2.1s", transform: `translateY(${scrollY * -0.05}px)` }} aria-hidden />
 
           {/* Mobile/tablet: stacked & centered. Desktop: 2-col */}
           <div className="flex flex-col items-center gap-4 text-center md:grid md:grid-cols-2 md:items-center md:gap-10 md:text-left">
             <div className="relative mx-auto h-[180px] w-[180px] sm:h-[240px] sm:w-[240px] md:h-[460px] md:w-[460px] md:mt-0">
-              <div className="absolute inset-0 -m-4 rounded-[45%_55%_60%_40%/55%_45%_50%_50%] bg-hotpink/40 blur-2xl animate-bloom-pulse" aria-hidden />
+              {/* glowing aura behind the hero photo */}
+              <div className="absolute inset-0 -m-6 rounded-[45%_55%_60%_40%/55%_45%_50%_50%] bg-hotpink/40 blur-2xl animate-bloom-pulse" aria-hidden />
+              <div className="absolute inset-0 -m-10 rounded-full bg-gradient-to-br from-hotpink/30 via-magenta/20 to-transparent blur-3xl animate-bloom-pulse" style={{ animationDelay: "1s" }} aria-hidden />
               <div className="hidden md:block"><SparkleRing radius={200} /></div>
               <div className="animate-bloom-float h-full w-full">
                 <img
@@ -72,14 +164,18 @@ function Landing() {
                   alt="A joyful girl with vibrant pink hair smiling"
                   width={520}
                   height={520}
-                  className="relative h-full w-full object-cover shadow-2xl mx-auto md:h-[420px] md:w-[420px] md:mt-5"
+                  className="relative h-full w-full object-cover shadow-[0_25px_60px_-15px_oklch(0.55_0.28_0/0.55)] mx-auto md:h-[420px] md:w-[420px] md:mt-5"
                   style={{ borderRadius: "55% 45% 50% 50% / 60% 55% 45% 40%" }}
                 />
               </div>
             </div>
 
             <div className="flex flex-col items-center md:items-start">
-              <h1 className="font-script text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none text-bloom-gradient drop-shadow-[0_4px_20px_oklch(0.7_0.25_0/0.25)]">Bloom</h1>
+              <h1 className="relative font-script text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none text-bloom-gradient drop-shadow-[0_4px_20px_oklch(0.7_0.25_0/0.25)] bloom-title-shimmer">
+                Bloom
+                <Sparkles className="absolute -right-4 -top-2 h-4 w-4 sm:h-5 sm:w-5 animate-bloom-sparkle text-hotpink" aria-hidden />
+                <Sparkles className="absolute -left-3 top-2 h-3 w-3 animate-bloom-sparkle text-magenta" style={{ animationDelay: "0.8s" }} aria-hidden />
+              </h1>
               <p className="mt-2 font-script text-xl sm:text-2xl md:text-3xl text-magenta">your softest era starts here</p>
               <p className="mt-3 max-w-xs sm:max-w-sm md:max-w-md text-sm sm:text-base font-medium text-magenta/90">
                 Budgets, yoga, cycle, diary & feel‑good reads — all in one soft little app.
@@ -87,10 +183,10 @@ function Landing() {
               <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 md:justify-start">
                 <Link
                   to="/app/tools"
-                  className="hover-scale inline-flex items-center gap-2 rounded-full px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-lg shadow-hotpink/40 transition"
-                  style={{ background: "linear-gradient(135deg, oklch(0.7 0.25 350), oklch(0.6 0.28 0))" }}
+                  className="bloom-cta relative overflow-hidden hover-scale inline-flex items-center gap-2 rounded-full px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold text-white transition"
                 >
-                  Start Blooming <ArrowRight className="h-4 w-4" />
+                  <span className="relative z-10 inline-flex items-center gap-2">Start Blooming <ArrowRight className="h-4 w-4" /></span>
+                  <span className="bloom-cta-shine" aria-hidden />
                 </Link>
                 <Link
                   to="/app/today"
@@ -104,7 +200,7 @@ function Landing() {
         </section>
 
         {/* Tools strip — animated flower buttons */}
-        <section className="mt-5 sm:mt-8 animate-fade-in rounded-[2rem] sm:rounded-[2.5rem] bg-white/85 p-5 sm:p-8 shadow-xl shadow-rose/10 backdrop-blur">
+        <section className="mt-5 sm:mt-8 animate-fade-in rounded-[2rem] sm:rounded-[2.5rem] bg-white/85 p-5 sm:p-8 shadow-[0_25px_60px_-25px_oklch(0.55_0.28_0/0.35),0_0_0_1px_oklch(1_0_0/0.6)_inset] backdrop-blur">
           <div className="mb-4 sm:mb-6 text-center">
             <p className="font-script text-2xl sm:text-3xl text-bloom-gradient leading-none">your bloom kit</p>
             <p className="mt-1 text-xs sm:text-sm font-medium text-magenta/80">Everything you need in one soft little app ✿</p>
@@ -119,6 +215,7 @@ function Landing() {
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <span className="bloom-flower relative grid h-16 w-16 sm:h-20 sm:w-20 place-items-center text-white transition-transform duration-500 group-hover:scale-110 group-active:scale-95">
+                  <span className="pointer-events-none absolute inset-0 -m-2 rounded-full bg-hotpink/25 blur-xl opacity-70 group-hover:opacity-100 transition-opacity" aria-hidden />
                   <FlowerShape />
                   <t.icon className="relative z-10 h-6 w-6 sm:h-7 sm:w-7 drop-shadow-[0_2px_3px_oklch(0.4_0.22_350/0.45)]" strokeWidth={1.8} />
                 </span>
@@ -129,6 +226,74 @@ function Landing() {
         </section>
 
         <style>{`
+          @keyframes bloom-breathe-bg {
+            0%, 100% { background-position: 0% 50%, 100% 50%, 50% 100%, 0 0; }
+            50%      { background-position: 30% 60%, 70% 40%, 40% 70%, 0 0; }
+          }
+          .bloom-breathe {
+            background:
+              radial-gradient(50rem 40rem at 10% 0%, oklch(0.92 0.12 350 / 0.55), transparent 60%),
+              radial-gradient(45rem 35rem at 95% 25%, oklch(0.88 0.18 10 / 0.45), transparent 60%),
+              radial-gradient(50rem 40rem at 50% 100%, oklch(0.9 0.14 330 / 0.5), transparent 60%),
+              linear-gradient(180deg, oklch(0.98 0.02 350), oklch(0.95 0.05 350));
+            background-size: 200% 200%;
+            animation: bloom-breathe-bg 22s ease-in-out infinite;
+          }
+
+          @keyframes bloom-slow-rise {
+            0%   { transform: translateY(0) translateX(0); opacity: 0; }
+            10%  { opacity: var(--o, 0.5); }
+            90%  { opacity: var(--o, 0.5); }
+            100% { transform: translateY(-110vh) translateX(var(--drift, 10px)); opacity: 0; }
+          }
+          .bloom-slow-bubble { animation: bloom-slow-rise linear infinite; }
+
+          @keyframes bloom-bokeh {
+            0%, 100% { opacity: 0; transform: scale(0.7); }
+            50%      { opacity: var(--o, 0.7); transform: scale(1); }
+          }
+          .bloom-bokeh { animation: bloom-bokeh ease-in-out infinite; }
+
+          @keyframes bloom-title-shimmer-kf {
+            0%   { background-position: -150% 0; }
+            60%  { background-position: 250% 0; }
+            100% { background-position: 250% 0; }
+          }
+          .bloom-title-shimmer::after {
+            content: "";
+            position: absolute; inset: 0;
+            background-image: linear-gradient(110deg, transparent 35%, oklch(1 0 0 / 0.55) 50%, transparent 65%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; pointer-events: none;
+            animation: bloom-title-shimmer-kf 5.5s ease-in-out infinite;
+            mix-blend-mode: screen;
+          }
+
+          .bloom-cta {
+            background: linear-gradient(135deg, oklch(0.72 0.27 350), oklch(0.55 0.3 0) 60%, oklch(0.68 0.27 330));
+            box-shadow:
+              0 10px 25px -8px oklch(0.55 0.3 0 / 0.55),
+              0 0 22px oklch(0.75 0.27 350 / 0.55),
+              inset 0 1px 0 oklch(1 0 0 / 0.4);
+            animation: bloom-cta-pulse 3s ease-in-out infinite;
+          }
+          @keyframes bloom-cta-pulse {
+            0%, 100% { box-shadow: 0 10px 25px -8px oklch(0.55 0.3 0 / 0.55), 0 0 22px oklch(0.75 0.27 350 / 0.5), inset 0 1px 0 oklch(1 0 0 / 0.4); }
+            50%      { box-shadow: 0 14px 30px -8px oklch(0.55 0.3 0 / 0.65), 0 0 36px oklch(0.78 0.27 350 / 0.8), inset 0 1px 0 oklch(1 0 0 / 0.5); }
+          }
+          .bloom-cta-shine {
+            position: absolute; top: 0; bottom: 0; left: -40%; width: 35%;
+            background: linear-gradient(110deg, transparent, oklch(1 0 0 / 0.55), transparent);
+            transform: skewX(-20deg);
+            animation: bloom-cta-shine-kf 4.5s ease-in-out infinite;
+          }
+          @keyframes bloom-cta-shine-kf {
+            0%   { left: -40%; }
+            55%  { left: 130%; }
+            100% { left: 130%; }
+          }
+
           @keyframes bloom-flower-bob {
             0%, 100% { transform: translateY(0) rotate(-3deg); }
             50% { transform: translateY(-5px) rotate(3deg); }
@@ -199,16 +364,16 @@ function Landing() {
             </div>
             <a href="#" className="hidden text-sm font-bold text-magenta hover:text-hotpink sm:inline">see all →</a>
           </div>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
             {POSTS.map((p) => (
-              <article key={p.title} className="group overflow-hidden rounded-[2rem] bg-white/90 shadow-xl shadow-rose/10 backdrop-blur transition hover:-translate-y-2 hover:shadow-rose/30">
+              <article key={p.title} className="group overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white/90 shadow-xl shadow-rose/10 backdrop-blur transition hover:-translate-y-2 hover:shadow-rose/30">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img src={p.img} alt={p.title} loading="lazy" width={768} height={576} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
-                  <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-hotpink shadow">{p.tag}</span>
+                  <span className="absolute left-2 top-2 sm:left-4 sm:top-4 rounded-full bg-white/90 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-hotpink shadow">{p.tag}</span>
                 </div>
-                <div className="p-5">
-                  <h3 className="font-script text-3xl text-bloom-gradient">{p.title}</h3>
-                  <p className="mt-1 text-sm font-medium text-magenta/80">{p.blurb}</p>
+                <div className="p-3 sm:p-5">
+                  <h3 className="font-script text-xl sm:text-3xl text-bloom-gradient leading-tight">{p.title}</h3>
+                  <p className="mt-1 text-xs sm:text-sm font-medium text-magenta/80">{p.blurb}</p>
                 </div>
               </article>
             ))}
