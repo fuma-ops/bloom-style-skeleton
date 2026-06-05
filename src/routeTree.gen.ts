@@ -19,6 +19,7 @@ import { Route as AppShopRouteImport } from './routes/app.shop'
 import { Route as AppReadRouteImport } from './routes/app.read'
 import { Route as AppMeRouteImport } from './routes/app.me'
 import { Route as AppToolsIndexRouteImport } from './routes/app.tools.index'
+import { Route as AppToolsYogaRouteImport } from './routes/app.tools.yoga'
 import { Route as AppToolsSlugRouteImport } from './routes/app.tools.$slug'
 
 const BudgetRoute = BudgetRouteImport.update({
@@ -71,6 +72,11 @@ const AppToolsIndexRoute = AppToolsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppToolsRoute,
 } as any)
+const AppToolsYogaRoute = AppToolsYogaRouteImport.update({
+  id: '/yoga',
+  path: '/yoga',
+  getParentRoute: () => AppToolsRoute,
+} as any)
 const AppToolsSlugRoute = AppToolsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/app/tools': typeof AppToolsRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools/yoga': typeof AppToolsYogaRoute
   '/app/tools/': typeof AppToolsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/app/today': typeof AppTodayRoute
   '/app': typeof AppIndexRoute
   '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools/yoga': typeof AppToolsYogaRoute
   '/app/tools': typeof AppToolsIndexRoute
 }
 export interface FileRoutesById {
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/app/tools': typeof AppToolsRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/tools/$slug': typeof AppToolsSlugRoute
+  '/app/tools/yoga': typeof AppToolsYogaRoute
   '/app/tools/': typeof AppToolsIndexRoute
 }
 export interface FileRouteTypes {
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/app/tools'
     | '/app/'
     | '/app/tools/$slug'
+    | '/app/tools/yoga'
     | '/app/tools/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/today'
     | '/app'
     | '/app/tools/$slug'
+    | '/app/tools/yoga'
     | '/app/tools'
   id:
     | '__root__'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/app/tools'
     | '/app/'
     | '/app/tools/$slug'
+    | '/app/tools/yoga'
     | '/app/tools/'
   fileRoutesById: FileRoutesById
 }
@@ -233,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppToolsIndexRouteImport
       parentRoute: typeof AppToolsRoute
     }
+    '/app/tools/yoga': {
+      id: '/app/tools/yoga'
+      path: '/yoga'
+      fullPath: '/app/tools/yoga'
+      preLoaderRoute: typeof AppToolsYogaRouteImport
+      parentRoute: typeof AppToolsRoute
+    }
     '/app/tools/$slug': {
       id: '/app/tools/$slug'
       path: '/$slug'
@@ -245,11 +264,13 @@ declare module '@tanstack/react-router' {
 
 interface AppToolsRouteChildren {
   AppToolsSlugRoute: typeof AppToolsSlugRoute
+  AppToolsYogaRoute: typeof AppToolsYogaRoute
   AppToolsIndexRoute: typeof AppToolsIndexRoute
 }
 
 const AppToolsRouteChildren: AppToolsRouteChildren = {
   AppToolsSlugRoute: AppToolsSlugRoute,
+  AppToolsYogaRoute: AppToolsYogaRoute,
   AppToolsIndexRoute: AppToolsIndexRoute,
 }
 
