@@ -5,6 +5,80 @@ import { TOOLS } from "@/components/bloom/tools";
 import { SparkleRing } from "@/components/bloom/SparkleRing";
 import { useEffect, useMemo, useState } from "react";
 
+function SlowBubbles({ count = 14 }: { count?: number }) {
+  const bubbles = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => {
+        const size = 40 + Math.round(Math.random() * 130);
+        const left = Math.round(Math.random() * 100);
+        const duration = 38 + Math.round(Math.random() * 30); // very slow 38-68s
+        const delay = -Math.round(Math.random() * duration);
+        const drift = `${Math.round(Math.random() * 30 - 15)}px`;
+        const opacity = 0.25 + Math.random() * 0.3;
+        return { i, size, left, delay, duration, drift, opacity };
+      }),
+    [count],
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden" aria-hidden>
+      {bubbles.map((b) => (
+        <span
+          key={b.i}
+          className="absolute bottom-[-180px] rounded-full bloom-bubble bloom-slow-bubble"
+          style={{
+            width: b.size,
+            height: b.size,
+            left: `${b.left}%`,
+            animationDelay: `${b.delay}s`,
+            animationDuration: `${b.duration}s`,
+            // @ts-expect-error custom var
+            "--drift": b.drift,
+            "--o": b.opacity,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BokehSparkles({ count = 18 }: { count?: number }) {
+  const items = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => {
+        const size = 4 + Math.round(Math.random() * 7);
+        const top = Math.round(Math.random() * 100);
+        const left = Math.round(Math.random() * 100);
+        const duration = 6 + Math.round(Math.random() * 8);
+        const delay = -Math.round(Math.random() * duration);
+        const opacity = 0.4 + Math.random() * 0.4;
+        return { i, size, top, left, duration, delay, opacity };
+      }),
+    [count],
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden" aria-hidden>
+      {items.map((s) => (
+        <span
+          key={s.i}
+          className="absolute rounded-full bg-white bloom-bokeh"
+          style={{
+            width: s.size,
+            height: s.size,
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            animationDuration: `${s.duration}s`,
+            animationDelay: `${s.delay}s`,
+            boxShadow: "0 0 10px 2px oklch(0.85 0.2 350 / 0.7)",
+            // @ts-expect-error custom var
+            "--o": s.opacity,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
