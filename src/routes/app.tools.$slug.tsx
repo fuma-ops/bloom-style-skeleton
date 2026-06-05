@@ -7,6 +7,7 @@ import { CycleTracker } from "@/components/bloom/CycleTracker";
 export const Route = createFileRoute("/app/tools/$slug")({
   loader: ({ params }) => {
     if (params.slug === "budget") throw redirect({ to: "/budget" });
+    if (params.slug === "yoga") throw redirect({ to: "/app/tools/yoga" });
     const tool = TOOLS.find((t) => t.slug === params.slug);
     if (!tool) throw notFound();
     return { tool };
