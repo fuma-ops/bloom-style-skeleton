@@ -1,7 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Heart, Instagram, Music2, Sparkles, Star, Quote } from "lucide-react";
+import {
+  ArrowRight,
+  Heart,
+  Sparkles,
+  Star,
+  Quote,
+  CalendarHeart,
+  UtensilsCrossed,
+  Flower,
+  BookHeart,
+  Wallet,
+  BellRing,
+  Calendar as CalendarIcon,
+  Lock,
+} from "lucide-react";
 import { BloomLogo } from "@/components/bloom/BloomLogo";
-import { TOOLS } from "@/components/bloom/tools";
 import { SparkleRing } from "@/components/bloom/SparkleRing";
 import { useEffect, useMemo, useState } from "react";
 
@@ -82,10 +95,10 @@ function BokehSparkles({ count = 18 }: { count?: number }) {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Bloom — your softest era starts here" },
-      { name: "description", content: "The cutest little app packed with tools for the modern girl — budgets, yoga, steps, diaries, cycles & feel-good reads. All in pink." },
-      { property: "og:title", content: "Bloom — your softest era starts here" },
-      { property: "og:description", content: "Budgets, yoga, steps, diaries, cycles & feel-good reads. All in pink." },
+      { title: "Bloom & Zein — your softest era starts here" },
+      { name: "description", content: "One soft little app where your cycle, meals, yoga, diary, budget and reminders all talk to each other. Made for you." },
+      { property: "og:title", content: "Bloom & Zein — your softest era starts here" },
+      { property: "og:description", content: "Every tool knows what the others know. Your softest era starts here." },
     ],
   }),
   component: Landing,
