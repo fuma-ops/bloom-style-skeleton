@@ -13,8 +13,8 @@ import {
   BellRing,
   Calendar as CalendarIcon,
   Lock,
-  type LucideIcon,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { BloomLogo } from "@/components/bloom/BloomLogo";
 import { SparkleRing } from "@/components/bloom/SparkleRing";
 import { useEffect, useMemo, useState } from "react";
