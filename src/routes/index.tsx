@@ -498,7 +498,6 @@ function UniverseCard({
           if (t.to && t.toParams) {
             return (
               <li key={t.slug}>
-                {/* @ts-expect-error dynamic params */}
                 <Link to={t.to} params={t.toParams} className="tool-row">{inner}</Link>
               </li>
             );
@@ -506,7 +505,6 @@ function UniverseCard({
           if (t.to) {
             return (
               <li key={t.slug}>
-                {/* @ts-expect-error dynamic to */}
                 <Link to={t.to} className="tool-row">{inner}</Link>
               </li>
             );
